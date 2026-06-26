@@ -1,19 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
- <meta charset="UTF-8">
- <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>Crypto Project Listing</title>
- <link rel="stylesheet" href="List.css">
- <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
- <script src="https://cdn.jsdelivr.net/npm/web3@1.10.4/dist/web3.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crypto Project Listing</title>
+  <link rel="stylesheet" href="List.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+<script type="module">
+  import { Web3Modal } from 'https://unpkg.com/@web3modal/standalone@2.4.3/dist/index.js'
+  import { EthereumProvider } from 'https://unpkg.com/@walletconnect/ethereum-provider@2.12.1/dist/index.umd.js'
+  window.Web3Modal = Web3Modal;
+  window.EthereumProvider = EthereumProvider;
+</script>
+  <style>
+    #bgVideo { position: fixed; right: 0; bottom: 0; min-width: 100%; min-height: 100%; z-index: -2; }
+    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: -1; }
+    .page { position: relative; z-index: 10; }
+    /* Ensure WalletConnect modal is ALWAYS on top */
+    wcm-modal { z-index: 99999 !important; position: relative; }
+  </style>
 </head>
 <body>
-  <!-- Video background -->
-  <video class="video-bg" autoplay muted loop playsinline>
-    <source src="List/animate2.mp4" type="video/mp4">
+  <video autoplay muted loop id="bgVideo">
+    <source src="List/animatealpha.mp4" type="video/mp4">
   </video>
-
+  <div class="overlay"></div>
 
   <main class="page">
     <form id="projectForm" class="card">
@@ -44,7 +55,7 @@
   <div id="feeModal" class="modal hidden">
     <div class="modal-content">
       <span class="close">&times;</span>
-      <p>You need to pay a fee to list your project.</p>
+      <p>A verification fee is required to list your project on The Void List.</p>
       <button id="proceedButton">Proceed to Payment</button>
     </div>
   </div>
@@ -52,15 +63,9 @@
   <div id="walletModal" class="modal hidden">
     <div class="modal-content">
       <span class="close">&times;</span>
-      <p>Select your wallet to pay the fee:</p>
-      <button id="phantomButton" class="wallet-btn">
-        <span class="wallet-icon phantom"></span>
-        Phantom
-      </button>
-      <button id="walletConnectButton" class="wallet-btn">
-        <span class="wallet-icon walletconnect"></span>
-        WalletConnect
-      </button>
+      <p>Select your wallet to continue:</p>
+      <button id="metaMaskButton" class="wallet-btn">MetaMask</button>
+      <button id="walletConnectButton" class="wallet-btn">WalletConnect</button>
     </div>
   </div>
 
