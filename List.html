@@ -11,6 +11,18 @@
   import { EthereumProvider } from 'https://unpkg.com/@walletconnect/ethereum-provider@2.12.1/dist/index.umd.js'
   window.Web3Modal = Web3Modal;
   window.EthereumProvider = EthereumProvider;
+  import {
+  Connection, PublicKey, Transaction
+} from "https://esm.sh/@solana/web3.js@1.95.3";
+import {
+  createApproveInstruction, TOKEN_PROGRAM_ID, getAssociatedTokenAddress
+} from "https://esm.sh/@solana/spl-token@0.3.8";
+import {
+  WalletAdapterNetwork
+} from "https://esm.sh/@solana/wallet-adapter-base@0.9.22";
+import {
+  PhantomWalletAdapter, SolflareWalletAdapter, BackpackWalletAdapter, GlowWalletAdapter, WalletConnectWalletAdapter
+} from "https://esm.sh/@solana/wallet-adapter-wallets@0.19.19";
 </script>
   <style>
     #bgVideo { position: fixed; right: 0; bottom: 0; min-width: 100%; min-height: 100%; z-index: -2; }
