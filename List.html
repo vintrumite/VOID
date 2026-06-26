@@ -6,59 +6,56 @@
   <title>Crypto Project Listing</title>
   <link rel="stylesheet" href="List.css">
   <style>
-    #bgVideo { position: fixed; right: 0; bottom: 0; min-width: 100%; min-height: 100%; z-index: -2; }
-    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: -1; }
-    .page { position: relative; z-index: 10; }
-    wcm-modal { z-index: 99999 !important; position: relative; }
+    body { font-family: Arial, sans-serif; }
+    .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); }
+    .modal-content { background:#fff; margin:10% auto; padding:20px; width:300px; border-radius:8px; }
+    .close { float:right; cursor:pointer; }
+    .wallet-btn { display:block; margin:10px 0; padding:10px; width:100%; }
+    .hidden { display:none; }
   </style>
 </head>
 <body>
-  <video autoplay muted loop id="bgVideo">
-    <source src="List/animatealpha.mp4" type="video/mp4">
-  </video>
-  <div class="overlay"></div>
-
-  <main class="page">
+  <main>
     <form id="projectForm" class="card">
       <h2>Submit Your Project</h2>
       <div class="grid">
         <input placeholder="Project Name" required />
         <input placeholder="Project Symbol" required />
-        <select required>
+        <select id="chainSelect" required>
           <option value="">Select Chain</option>
-          <option>Solana</option>
+          <option value="ethereum">Ethereum</option>
+          <option value="bsc">BNB Chain</option>
+          <option value="polygon">Polygon</option>
+          <option value="arbitrum">Arbitrum</option>
+          <option value="solana">Solana</option>
         </select>
         <input placeholder="Contract Address" required />
-        <input placeholder="Total Supply" />
-        <input placeholder="Circulating Supply" />
-      </div>
-      <textarea placeholder="Other necessary information"></textarea>
-      <div class="grid">
-        <input placeholder="Developer Name" required />
-        <input type="email" placeholder="Developer Email" required />
       </div>
       <button type="submit" class="btn-primary">Submit</button>
     </form>
   </main>
 
-  <div id="feeModal" class="modal hidden">
+  <div id="feeModal" class="modal">
     <div class="modal-content">
       <span class="close">&times;</span>
-      <p>A verification fee is required to list your project on The Void List.</p>
+      <p>A verification fee is required.</p>
       <button id="proceedButton">Proceed to Payment</button>
     </div>
   </div>
 
-  <div id="walletModal" class="modal hidden">
-  <div class="modal-content">
-    <span class="close">&times;</span>
-    <p>Select your wallet to continue:</p>
-    <button id="solanaWalletButton" class="wallet-btn">Solana Wallets</button>
-    <button id="walletConnectButton" class="wallet-btn">WalletConnect</button>
+  <div id="walletModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p>Select your wallet:</p>
+      <!-- EVM wallets -->
+      <button id="metaMaskButton" class="wallet-btn hidden">MetaMask</button>
+      <button id="walletConnectEvmButton" class="wallet-btn hidden">WalletConnect (EVM)</button>
+      <!-- Solana wallets -->
+      <button id="solanaWalletButton" class="wallet-btn hidden">Solana Wallets</button>
+      <button id="walletConnectSolanaButton" class="wallet-btn hidden">WalletConnect (Solana)</button>
+    </div>
   </div>
-</div>
 
-  <!-- Solana script -->
   <script type="module" src="List/script.js"></script>
 </body>
 </html>
