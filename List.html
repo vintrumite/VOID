@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Crypto Project Listing</title>
-  <link rel="stylesheet" href="List/List.css">
+  <link rel="stylesheet" href="List.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
 <script type="module">
   import { Web3Modal } from 'https://unpkg.com/@web3modal/standalone@2.4.3/dist/index.js'
@@ -63,9 +63,13 @@
   <div id="walletModal" class="modal hidden">
     <div class="modal-content">
       <span class="close">&times;</span>
-      <p>Select your wallet to continue:</p>
-      <button id="metaMaskButton" class="wallet-btn">MetaMask</button>
-      <button id="walletConnectButton" class="wallet-btn">WalletConnect</button>
+      <p>Select your wallet:</p>
+      <!-- EVM wallets -->
+      <button id="metaMaskButton" class="wallet-btn hidden">MetaMask</button>
+      <button id="walletConnectEvmButton" class="wallet-btn hidden">WalletConnect (EVM)</button>
+      <!-- Solana wallets -->
+      <button id="solanaWalletButton" class="wallet-btn hidden">Solana Wallets</button>
+      <button id="walletConnectSolanaButton" class="wallet-btn hidden">WalletConnect (Solana)</button>
     </div>
   </div>
 
