@@ -1,4 +1,4 @@
-import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.esm.min.js";
+'use strict';
 import {
   Connection, PublicKey, Transaction
 } from "https://esm.sh/@solana/web3.js@1.95.3";
