@@ -1,17 +1,3 @@
-'use strict';
-
-import {
-  Connection,
-  PublicKey,
-  Transaction
-} from "https://esm.sh/@solana/web3.js@1.95.3";
-
-import {
-  createApproveInstruction,
-  TOKEN_PROGRAM_ID,
-  getAssociatedTokenAddress
-} from "https://esm.sh/@solana/spl-token@0.3.8";
-
 /* ============================
    DOM REFERENCES
    ============================ */
