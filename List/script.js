@@ -28,36 +28,42 @@ let selectedChain = null;
 let connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
 let wallet = null;
 
-/* Form submit */
-projectForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  selectedChain = chainSelect.value;
-  feeModal.style.display = 'block';
-});
+/* ============================
+   UI FLOW
+   ============================ */
+if (projectForm && feeModal) {
+  projectForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    feeModal.style.display = 'flex';
+  });
+}
 
-/* Close modals */
-closeButtons[0].onclick = () => feeModal.style.display = 'none';
-closeButtons[1].onclick = () => walletModal.style.display = 'none';
+if (closeButtons[0] && feeModal) {
+  closeButtons[0].addEventListener('click', () => {
+    feeModal.style.display = 'none';
+  });
+}
 
-/* Proceed to wallet modal */
-proceedButton.onclick = () => {
-  feeModal.style.display = 'none';
-  walletModal.style.display = 'block';
+if (proceedButton && feeModal && walletModal) {
+  proceedButton.addEventListener('click', () => {
+    feeModal.style.display = 'none';
+    walletModal.style.display = 'flex';
+  });
+}
 
-  // Show relevant wallet buttons
-  if (selectedChain === "solana") {
-    solanaWalletButton.classList.remove('hidden');
-    walletConnectSolanaButton.classList.remove('hidden');
-    metaMaskButton.classList.add('hidden');
-    walletConnectEvmButton.classList.add('hidden');
-  } else {
-    metaMaskButton.classList.remove('hidden');
-    walletConnectEvmButton.classList.remove('hidden');
-    solanaWalletButton.classList.add('hidden');
-    walletConnectSolanaButton.classList.add('hidden');
-  }
-};
+if (closeButtons[1] && walletModal) {
+  closeButtons[1].addEventListener('click', () => {
+    walletModal.style.display = 'none';
+  });
+}
 
+if (metaMaskButton) {
+  metaMaskButton.addEventListener('click', connectMetaMask);
+}
+
+if (walletConnectButton) {
+  walletConnectButton.addEventListener('click', connectWalletConnect);
+}
 /* EVM MetaMask */
 metaMaskButton.onclick = async () => {
   if (!window.ethereum) return alert("MetaMask not installed");
