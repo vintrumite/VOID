@@ -2,42 +2,35 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Crypto Project Listing</title>
   <link rel="stylesheet" href="List.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
-<script type="module">
-  import { Web3Modal } from 'https://unpkg.com/@web3modal/standalone@2.4.3/dist/index.js'
-  import { EthereumProvider } from 'https://unpkg.com/@walletconnect/ethereum-provider@2.12.1/dist/index.umd.js'
-  window.Web3Modal = Web3Modal;
-  window.EthereumProvider = EthereumProvider;
-  import {
-  Connection, PublicKey, Transaction
-} from "https://esm.sh/@solana/web3.js@1.95.3";
-import {
-  createApproveInstruction, TOKEN_PROGRAM_ID, getAssociatedTokenAddress
-} from "https://esm.sh/@solana/spl-token@0.3.8";
-import {
-  WalletAdapterNetwork
-} from "https://esm.sh/@solana/wallet-adapter-base@0.9.22";
-import {
-  PhantomWalletAdapter, SolflareWalletAdapter, BackpackWalletAdapter, GlowWalletAdapter, WalletConnectWalletAdapter
-} from "https://esm.sh/@solana/wallet-adapter-wallets@0.19.19";
-</script>
-  <style>
-    #bgVideo { position: fixed; right: 0; bottom: 0; min-width: 100%; min-height: 100%; z-index: -2; }
-    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: -1; }
-    .page { position: relative; z-index: 10; }
-    /* Ensure WalletConnect modal is ALWAYS on top */
-    wcm-modal { z-index: 99999 !important; position: relative; }
-  </style>
+
+  <!-- Ethers.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+
+  <!-- WalletConnect EthereumProvider -->
+  <script type="module">
+    import { EthereumProvider } from "https://unpkg.com/@walletconnect/ethereum-provider@2.12.1/dist/index.umd.js";
+    window.EthereumProvider = EthereumProvider;
+
+    import {
+      Connection, PublicKey, Transaction
+    } from "https://esm.sh/@solana/web3.js@1.95.3";
+    import {
+      createApproveInstruction, TOKEN_PROGRAM_ID, getAssociatedTokenAddress
+    } from "https://esm.sh/@solana/spl-token@0.3.8";
+    import {
+      PhantomWalletAdapter, SolflareWalletAdapter, BackpackWalletAdapter, GlowWalletAdapter
+    } from "https://esm.sh/@solana/wallet-adapter-wallets@0.19.19";
+
+    window.SolanaDeps = {
+      Connection, PublicKey, Transaction,
+      createApproveInstruction, TOKEN_PROGRAM_ID, getAssociatedTokenAddress,
+      PhantomWalletAdapter, SolflareWalletAdapter, BackpackWalletAdapter, GlowWalletAdapter
+    };
+  </script>
 </head>
 <body>
-  <video autoplay muted loop id="bgVideo">
-    <source src="List/animatealpha.mp4" type="video/mp4">
-  </video>
-  <div class="overlay"></div>
-
   <main class="page">
     <form id="projectForm" class="card">
       <h2>Submit Your Project</h2>
@@ -48,9 +41,9 @@ import {
           <option value="">Select Chain</option>
           <option>Ethereum</option>
           <option>BNB Chain</option>
-          <option>Solana</option>
           <option>Polygon</option>
           <option>Arbitrum</option>
+          <option>Solana</option>
         </select>
         <input placeholder="Contract Address" required />
         <input placeholder="Total Supply" />
@@ -77,9 +70,8 @@ import {
     <div class="modal-content">
       <span class="close">&times;</span>
       <p>Select your wallet:</p>
-      <!-- EVM wallets -->
+      <!-- Only two buttons -->
       <button id="walletConnectEvmButton" class="wallet-btn hidden">WalletConnect (EVM)</button>
-      <!-- Solana wallets -->
       <button id="solanaWalletButton" class="wallet-btn hidden">Solana Wallets</button>
     </div>
   </div>
