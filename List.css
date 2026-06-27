@@ -42,7 +42,7 @@ body {
   background: #0f0f0f;
   color: #fff;
   width: 100%;
-  max-width: 960px; /* slightly wider */
+  max-width: 860px; /* slightly wider */
   padding: 40px; /* increased */
   border-radius: 16px;
   box-shadow: 0 24px 60px rgba(0,0,0,0.45);
@@ -55,7 +55,7 @@ h2 {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); /* larger min width */
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); /* larger min width */
   gap: 20px; /* increased */
 }
 
@@ -77,13 +77,13 @@ textarea::placeholder {
 
 textarea {
   margin-top: 18px; /* increased */
-  min-height: 140px; /* increased */
+  min-height: 240px; /* increased */
 }
 
 .btn-primary {
-  margin-top: 30px; /* increased */
+  margin-top: 40px; /* increased */
   padding: 20px; /* increased */
-  width: 100%;
+  width: 90%;
   background: #5b2dbd;
   border: none;
   border-radius: 12px;
@@ -97,12 +97,12 @@ textarea {
 }
 
 label {
-  margin-bottom: 8px; /* increased */
+  margin-bottom: 7px; /* increased */
   color: #555;
 }
 
 button {
-  padding: 14px; /* increased */
+  padding: 12px; /* increased */
   background-color: #6e3fe0;
   color: #fff;
   border: none;
@@ -138,10 +138,10 @@ button:hover {
 .modal-content {
   background: linear-gradient(180deg, #121212, #0b0b0b);
   color: #fff;
-  padding: 36px; /* increased */
+  padding: 26px; /* increased */
   border-radius: 20px;
   width: 92%;
-  max-width: 500px; /* larger */
+  max-width: 300px; /* larger */
   text-align: center;
   box-shadow:
     0 36px 70px rgba(0, 0, 0, 0.65),
@@ -151,7 +151,7 @@ button:hover {
 }
 
 .modal-content p {
-  margin: 24px 0 32px; /* increased */
+  margin: 14px 0 22px; /* increased */
   font-size: 16px;
   line-height: 1.7;
   color: #d0d0d0;
@@ -159,9 +159,9 @@ button:hover {
 
 .close {
   position: absolute;
-  top: 18px; /* increased */
-  right: 22px; /* increased */
-  font-size: 30px; /* increased */
+  top: 14px; /* increased */
+  right: 12px; /* increased */
+  font-size: 20px; /* increased */
   font-weight: 400;
   color: #888;
   cursor: pointer;
@@ -175,8 +175,8 @@ button:hover {
 
 .modal-content button {
   width: 100%;
-  padding: 20px; /* increased */
-  margin-top: 18px; /* increased */
+  padding: 10px; /* increased */
+  margin-top: 14px; /* increased */
   border-radius: 14px;
   border: none;
   font-size: 16px;
@@ -204,7 +204,7 @@ button:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px; /* increased */
+  gap: 26px; /* increased */
   width: 100%;
   padding: 20px; /* increased */
   border-radius: 14px;
@@ -223,8 +223,8 @@ button:hover {
 }
 
 .wallet-icon {
-  width: 26px; /* increased */
-  height: 26px;
+  width: 16px; /* increased */
+  height: 36px;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
@@ -262,6 +262,6 @@ button:hover {
 
 @media (max-width: 600px) {
   .container {
-    padding: 24px; /* increased */
+    padding: 14px; /* increased */
   }
 }
