@@ -179,8 +179,9 @@ button:hover {
   display: flex;
   flex-direction: column; /* stack vertically */
   align-items: center;
-  justify-content: space-between; /* Phantom top, WalletConnect bottom */
-  height: 10%;
+  justify-content: center; /* Phantom top, WalletConnect bottom */
+  gap: 4px;
+  height: 105%;
 }
 
 /* Phantom stays at the top */
