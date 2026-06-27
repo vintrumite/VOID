@@ -20,7 +20,7 @@
 }
 
 .page, .modal {
-  position: fixed;
+  position: reletive;
   z-index: 10;
 }
 
