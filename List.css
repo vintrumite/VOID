@@ -1,3 +1,5 @@
+just fix everything 
+DO NOT CHANGE THE COLOUR JUST MAKE IT ADDAPTIVE WITH THE HTML AND TELL ME EVERYTHING YOU NEED TO CHANGE BEFORE changing it 
 * {
   box-sizing: border-box;
 }
@@ -9,20 +11,21 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  z-index: 0;
+  z-index: 0; /* lowest layer */
 }
 
 .video-overlay {
   position: absolute;
   inset: 0;
   background: rgba(255,255,255,0.7);
-  z-index: 1;
+  z-index: 1; /* middle layer */
 }
 
 .page, .modal {
   position: relative;
-  z-index: 10;
+  z-index: 10; /* top layer so buttons are clickable */
 }
+
 
 body {
   margin: 0;
@@ -35,7 +38,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 28px; /* slightly increased */
+  padding: 24px;
 }
 
 .card {
@@ -43,33 +46,31 @@ body {
   color: #fff;
   width: 100%;
   max-width: 900px;
-  padding: 32px; /* slightly increased */
+  padding: 28px;
   border-radius: 14px;
   box-shadow: 0 20px 50px rgba(0,0,0,0.4);
-  min-height: 580px; /* ensures fixed length */
 }
 
 h2 {
   text-align: center;
-  margin-bottom: 28px; /* slightly increased */
+  margin-bottom: 24px;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); /* slightly wider inputs */
-  gap: 16px; /* slightly increased */
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
 }
 
 input,
 select,
 textarea {
   width: 100%;
-  padding: 16px; /* slightly increased */
+  padding: 14px;
   border-radius: 10px;
   border: none;
   background: #1a1a1a;
   color: #ffffff;
-  height: 46px; /* fixed taller inputs */
 }
 
 input::placeholder,
@@ -78,14 +79,13 @@ textarea::placeholder {
 }
 
 textarea {
-  margin-top: 16px; /* slightly increased */
-  min-height: 130px; /* taller description box */
-  padding: 16px; /* more inner space */
+  margin-top: 14px;
+  min-height: 110px;
 }
 
 .btn-primary {
-  margin-top: 24px; /* slightly increased */
-  padding: 16px; /* slightly increased */
+  margin-top: 20px;
+  padding: 14px;
   width: 100%;
   background: #5b2dbd;
   border: none;
@@ -93,7 +93,6 @@ textarea {
   color: #fff;
   font-size: 16px;
   cursor: pointer;
-  height: 52px; /* fixed taller button */
 }
 
 .btn-primary:hover {
@@ -101,12 +100,12 @@ textarea {
 }
 
 label {
-  margin-bottom: 6px; /* slightly increased */
+  margin-bottom: 5px;
   color: #555;
 }
 
 button {
-  padding: 12px; /* slightly increased */
+  padding: 10px;
   background-color: #6e3fe0;
   color: #fff;
   border: none;
@@ -131,7 +130,7 @@ button:hover {
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  isolation: isolate;
+  isolation: isolate; /* ✅ FIX: prevents stacking trap */
   animation: modalFadeIn 0.25s ease-out;
 }
 
@@ -142,11 +141,10 @@ button:hover {
 .modal-content {
   background: linear-gradient(180deg, #121212, #0b0b0b);
   color: #fff;
-  padding: 32px; /* slightly increased */
+  padding: 28px 26px 30px;
   border-radius: 18px;
   width: 92%;
-  max-width: 440px; /* slightly larger */
-  min-height: 280px; /* ensures fixed modal length */
+  max-width: 420px;
   text-align: center;
   box-shadow:
     0 30px 60px rgba(0, 0, 0, 0.6),
@@ -156,7 +154,7 @@ button:hover {
 }
 
 .modal-content p {
-  margin: 20px 0 26px; /* slightly increased */
+  margin: 18px 0 24px;
   font-size: 15px;
   line-height: 1.6;
   color: #d0d0d0;
@@ -164,9 +162,9 @@ button:hover {
 
 .close {
   position: absolute;
-  top: 16px; /* slightly increased */
-  right: 20px; /* slightly increased */
-  font-size: 28px; /* slightly increased */
+  top: 14px;
+  right: 18px;
+  font-size: 26px;
   font-weight: 400;
   color: #888;
   cursor: pointer;
@@ -180,15 +178,14 @@ button:hover {
 
 .modal-content button {
   width: 100%;
-  padding: 16px; /* slightly increased */
-  margin-top: 14px; /* slightly increased */
+  padding: 14px;
+  margin-top: 12px;
   border-radius: 12px;
   border: none;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
-  height: 50px; /* fixed taller modal buttons */
 }
 
 #proceedButton {
@@ -210,9 +207,9 @@ button:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px; /* slightly increased */
+  gap: 12px;
   width: 100%;
-  padding: 16px; /* slightly increased */
+  padding: 14px;
   border-radius: 12px;
   font-size: 15px;
   font-weight: 600;
@@ -221,7 +218,6 @@ button:hover {
   color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.08);
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-  height: 50px; /* fixed taller wallet buttons */
 }
 
 .wallet-btn:hover {
@@ -230,19 +226,19 @@ button:hover {
 }
 
 .wallet-icon {
-  width: 26px; /* slightly increased */
-  height: 26px;
+  width: 22px;
+  height: 22px;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
 }
 
 .wallet-icon.phantom {
-  background-image: url("data:image/svg+xml,...");
+background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256' viewBox='0 0 256 256'%3E%3Ccircle cx='128' cy='128' r='128' fill='%23AB9FF2'/%3E%3Cpath fill='%23FFFFFF' d='M176.3 91.7c-11.6-11.6-27.1-18-43.5-18s-31.9 6.4-43.5 18c-11.6 11.6-18 27.1-18 43.5s6.4 31.9 18 43.5c11.6 11.6 27.1 18 43.5 18s31.9-6.4 43.5-18c11.6-11.6 18-27.1 18-43.5s-6.4-31.9-18-43.5zm-43.5 74.2c-16.9 0-30.7-13.8-30.7-30.7s13.8-30.7 30.7-30.7 30.7 13.8 30.7 30.7-13.8 30.7-30.7 30.7z'/%3E%3C/svg%3E");
 }
 
 .wallet-icon.walletconnect {
-  background-image: url("data:image/svg+xml,...");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Cpath fill='%233B99FC' d='M100 200c27-27 73-27 100 0l14 14 14-14c27-27 73-27 100 0l36 36-50 50-36-36c-27-27-73-27-100 0l-14 14-14-14c-27-27-73-27-100 0l-36 36-50-50z'/%3E%3C/svg%3E");
 }
 
 /* ============================
@@ -269,6 +265,6 @@ button:hover {
 
 @media (max-width: 600px) {
   .container {
-    padding: 18px; /* slightly increased */
+    padding: 15px;
   }
 }
