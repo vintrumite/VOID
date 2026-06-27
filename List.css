@@ -180,18 +180,18 @@ button:hover {
   flex-direction: column; /* stack vertically */
   align-items: center;
   justify-content: center; /* Phantom top, WalletConnect bottom */
-  gap: 4px;
+  gap: 8px;
   height: 105%;
 }
 
 /* Phantom stays at the top */
 #phantomButton {
-  align-self: flex-start;
-  margin-bottom: 4px;
+  width: 320px; 
+  margin: 0;
 }
 
 /* WalletConnect stays at the bottom */
 #walletConnectButton {
-  align-self: flex-end;
-  margin-top: 4xp;
+ width: 320px;
+  margin: 0;
 }
