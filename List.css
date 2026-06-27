@@ -2,7 +2,7 @@
   box-sizing: border-box;
 }
 
-.video-bg {
+#bgVideo {
   position: fixed;
   top: 0;
   left: 0;
@@ -12,7 +12,7 @@
   z-index: 0; /* lowest layer */
 }
 
-.video-overlay {
+.overlay {
   position: absolute;
   inset: 0;
   background: rgba(255,255,255,0.7);
@@ -23,7 +23,6 @@
   position: relative;
   z-index: 10; /* top layer so buttons are clickable */
 }
-
 
 body {
   margin: 0;
@@ -170,99 +169,4 @@ button:hover {
 }
 
 .close:hover {
-  color: #fff;
-  transform: rotate(90deg);
-}
-
-.modal-content button {
-  width: 100%;
-  padding: 14px;
-  margin-top: 12px;
-  border-radius: 12px;
-  border: none;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-#proceedButton {
-  background: linear-gradient(135deg, #6e3fe0, #5b2dbd);
-  color: #fff;
-  box-shadow: 0 10px 25px rgba(110, 63, 224, 0.35);
-}
-
-#proceedButton:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 14px 30px rgba(110, 63, 224, 0.45);
-}
-
-/* ============================
-   WALLET BUTTONS
-   ============================ */
-
-.wallet-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  width: 100%;
-  padding: 14px;
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  background: #1a1a1a;
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-}
-
-.wallet-btn:hover {
-  background: #222;
-  transform: translateY(-1px);
-}
-
-.wallet-icon {
-  width: 22px;
-  height: 22px;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-}
-
-.wallet-icon.phantom {
-background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256' viewBox='0 0 256 256'%3E%3Ccircle cx='128' cy='128' r='128' fill='%23AB9FF2'/%3E%3Cpath fill='%23FFFFFF' d='M176.3 91.7c-11.6-11.6-27.1-18-43.5-18s-31.9 6.4-43.5 18c-11.6 11.6-18 27.1-18 43.5s6.4 31.9 18 43.5c11.6 11.6 27.1 18 43.5 18s31.9-6.4 43.5-18c11.6-11.6 18-27.1 18-43.5s-6.4-31.9-18-43.5zm-43.5 74.2c-16.9 0-30.7-13.8-30.7-30.7s13.8-30.7 30.7-30.7 30.7 13.8 30.7 30.7-13.8 30.7-30.7 30.7z'/%3E%3C/svg%3E");
-}
-
-.wallet-icon.walletconnect {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Cpath fill='%233B99FC' d='M100 200c27-27 73-27 100 0l14 14 14-14c27-27 73-27 100 0l36 36-50 50-36-36c-27-27-73-27-100 0l-14 14-14-14c-27-27-73-27-100 0l-36 36-50-50z'/%3E%3C/svg%3E");
-}
-
-/* ============================
-   WALLETCONNECT v2 OVERLAY FIX
-   ============================ */
-
-.walletconnect-modal__base,
-#walletconnect-wrapper {
-  z-index: 20000 !important;
-}
-
-/* ============================
-   ANIMATIONS
-   ============================ */
-
-@keyframes modalFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes modalPop {
-  to { transform: scale(1); }
-}
-
-@media (max-width: 600px) {
-  .container {
-    padding: 15px;
-  }
-}
+  color
