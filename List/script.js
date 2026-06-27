@@ -1,5 +1,5 @@
 'use strict';
-import { SolanaWalletAdapter } from '@walletconnect/solana-wallet-adapter';
+
 /* ============================
    DOM REFERENCES
    ============================ */
