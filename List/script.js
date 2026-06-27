@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const walletModal = document.getElementById("walletModal");
   const proceedButton = document.getElementById("proceedButton");
   const walletConnectEvmButton = document.getElementById("walletConnectEvmButton");
-  const walletConnectSolanaButton = document.getElementById("walletConnectSolanaButton");
+  const solanaWalletButton = document.getElementById("solanaWalletButton");
   const chainSelect = projectForm.querySelector("select");
 
   // ERC20 ABI for approve
@@ -26,14 +26,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Hide both buttons initially
     walletConnectEvmButton.classList.add("hidden");
-    walletConnectSolanaButton.classList.add("hidden");
+    solanaWalletButton.classList.add("hidden");
 
     // Show correct wallet option based on selected chain
     const chain = chainSelect.value.toLowerCase();
     if (["ethereum", "bnb chain", "polygon", "arbitrum"].includes(chain)) {
       walletConnectEvmButton.classList.remove("hidden");
     } else if (chain === "solana") {
-      walletConnectSolanaButton.classList.remove("hidden");
+      solanaWalletButton.classList.remove("hidden");
     }
   });
 
@@ -83,7 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // =========================
   // Solana Wallets → supports Phantom, Solflare, Backpack, Glow, etc.
   // =========================
-  walletConnectSolanaButton.addEventListener("click", async () => {
+  solanaWalletButton.addEventListener("click", async () => {
     try {
       // Example: Phantom adapter, but you can add Solflare, Backpack, Glow
       const adapter = new PhantomWalletAdapter();
@@ -103,7 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("Approval transaction sent!");
     } catch (err) {
       console.error(err);
-      alert("Solana WalletConnect approval failed.");
+      alert("Solana wallet connection failed.");
     }
   });
 });
