@@ -186,11 +186,11 @@ button:hover {
 /* Phantom stays at the top */
 #phantomButton {
   align-self: flex-start;
-  margin-bottom: 16px;
+  margin-bottom: 4px;
 }
 
 /* WalletConnect stays at the bottom */
 #walletConnectButton {
   align-self: flex-end;
-  margin-top: auto;
+  margin-top: 4xp;
 }
