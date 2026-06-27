@@ -56,7 +56,7 @@ h2 {
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); /* larger min width */
-  gap: 20px; /* increased */
+  gap:  10px; /* increased */
 }
 
 input,
@@ -204,7 +204,7 @@ button:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 26px; /* increased */
+  gap: 16px; /* increased */
   width: 100%;
   padding: 20px; /* increased */
   border-radius: 14px;
