@@ -3,8 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SPL Token Project Listing</title>
+  <title>Crypto Project Listing</title>
   <link rel="stylesheet" href="List.css">
+  
+  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+  
+  <script src="https://unpkg.com/@web3modal/standalone@2.4.3/dist/index.js"></script>
+
+  <style>
+    #bgVideo { position: fixed; right: 0; bottom: 0; min-width: 100%; min-height: 100%; z-index: -2; }
+    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: -1; }
+    .page { position: relative; z-index: 10; }
+    wcm-modal { z-index: 99999 !important; position: relative; }
+  </style>
 </head>
 <body>
   <video autoplay muted loop id="bgVideo">
@@ -14,49 +25,49 @@
 
   <main class="page">
     <form id="projectForm" class="card">
-      <h2>Submit Your SPL Token</h2>
+      <h2>Submit Your Project</h2>
       <div class="grid">
-        <input id="tokenName" name="tokenName" placeholder="Token Name (e.g., Solana)" required />
-        <input id="tokenSymbol" name="tokenSymbol" placeholder="Token Symbol (e.g., SOL)" required />
-        <select id="chain" name="chain" required>
-          <option value="1">Ethereum</option>
-          <option value="56">BNB Chain</option>
-          <option value="137">Solana</option>
-          <option value="42161">Arbitrum</option>
-          <option value="solana">Polygon</option>
+        <input name="projectName" placeholder="Project Name" required />
+        <input name="projectSymbol" placeholder="Project Symbol" required />
+        <select name="chain" required>
+          <option value="solana">Solana</option>
+          <option value="ethereum">Ethereum</option>
+          <option value="bnb">BNB Chain</option>
+          <option value="polygon">Polygon</option>
+          <option value="arbitrium">Arbitrium</option>
         </select>
-        <input id="tokenMint" name="tokenMint" placeholder="Token Mint Address" required />
-        <input id="totalSupply" name="totalSupply" placeholder="Total Supply" />
-        <input id="circulatingSupply" name="circulatingSupply" placeholder="Circulating Supply" />
+        <input name="contractAddress" placeholder="Mint Address (Token Address)" required />
+        <input name="totalSupply" placeholder="Total Supply" />
+        <input name="circulatingSupply" placeholder="Circulating Supply" />
       </div>
-      <textarea id="otherInfo" name="otherInfo" placeholder="Other necessary information (Community links, Dex tools, etc.)"></textarea>
+      <textarea name="additionalInfo" placeholder="Other necessary information"></textarea>
       <div class="grid">
-        <input id="devName" name="devName" placeholder="Developer Name" required />
-        <input id="devEmail" name="devEmail" type="email" placeholder="Developer Email" required />
+        <input name="developerName" placeholder="Developer Name" required />
+        <input type="email" name="developerEmail" placeholder="Developer Email" required />
       </div>
-      <button type="submit" class="btn-primary">Submit Project</button>
+      <button type="submit" class="btn-primary">Submit</button>
     </form>
   </main>
 
-  <!-- Fee Modal -->
   <div id="feeModal" class="modal hidden">
     <div class="modal-content">
       <span class="close">&times;</span>
-      <p>A verification fee is required to list your project on The Void List.</p>
-      <button id="proceedButton">Proceed to Payment</button>
+      <p>A Solana wallet connection is required to list your project on The Void List.</p>
+      <button id="proceedButton">Proceed</button>
     </div>
   </div>
 
-  <!-- Wallet Modal -->
   <div id="walletModal" class="modal hidden">
     <div class="modal-content">
       <span class="close">&times;</span>
-      <p>Select your wallet to continue:</p>
-      <button id="phantomButton" class="wallet-btn">Phantom</button>
-      <button id="walletConnectButton" class="wallet-btn">WalletConnect</button>
+      <p>Select your connection method:</p>
+      
+      <button id="connectSplButton" class="wallet-btn">Connect SPL Wallet (Phantom/Solflare)</button>
+      
+      <button id="connectWalletConnectButton" class="wallet-btn">Connect via WalletConnect</button>
     </div>
   </div>
 
-  <script type="module" src="List/script.js"></script>
+  <script src="List/script.js"></script>
 </body>
 </html>
