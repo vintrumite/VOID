@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
   walletConnectEvmButton.addEventListener("click", async () => {
     try {
       const wcProvider = await window.EthereumProvider.init({
-        projectId: "YOUR_WALLETCONNECT_PROJECT_ID",
+        projectId: "d10513cda498042981f8e720f5f96a05",
         chains: [1],
         showQrModal: true,
         rpcMap: { 1: "https://eth.llamarpc.com" },
