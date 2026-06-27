@@ -127,7 +127,7 @@ button:hover {
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  isolation: isolate; /* ✅ FIX: prevents stacking trap */
+  isolation: isolate; /* prevents stacking trap */
   animation: modalFadeIn 0.25s ease-out;
 }
 
@@ -148,6 +148,7 @@ button:hover {
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
   transform: scale(0.96);
   animation: modalPop 0.25s ease-out forwards;
+  position: relative;
 }
 
 .modal-content p {
@@ -169,4 +170,27 @@ button:hover {
 }
 
 .close:hover {
-  color
+  color: #fff;
+  transform: rotate(90deg);
+}
+
+/* Wallet Modal Layout */
+#walletModal .modal-content {
+  display: flex;
+  flex-direction: column; /* stack vertically */
+  align-items: center;
+  justify-content: space-between; /* Phantom top, WalletConnect bottom */
+  height: 100%;
+}
+
+/* Phantom stays at the top */
+#phantomButton {
+  align-self: flex-start;
+  margin-bottom: 16px;
+}
+
+/* WalletConnect stays at the bottom */
+#walletConnectButton {
+  align-self: flex-end;
+  margin-top: auto;
+}
