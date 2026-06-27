@@ -7,6 +7,11 @@
   <link rel="stylesheet" href="List.css">
 </head>
 <body>
+  <video autoplay muted loop id="bgVideo">
+    <source src="List/animatealpha.mp4" type="video/mp4">
+  </video>
+  <div class="overlay"></div>
+
   <main class="page">
     <form id="projectForm" class="card">
       <h2>Submit Your SPL Token</h2>
@@ -29,14 +34,22 @@
     </form>
   </main>
 
-  <!-- Wallet Modal -->
-  <div id="walletModal" class="modal">
+  <!-- Fee Modal -->
+  <div id="feeModal" class="modal hidden">
     <div class="modal-content">
       <span class="close">&times;</span>
-      <p>Select your Solana wallet to continue:</p>
+      <p>A verification fee is required to list your project on The Void List.</p>
+      <button id="proceedButton">Proceed to Payment</button>
+    </div>
+  </div>
+
+  <!-- Wallet Modal -->
+  <div id="walletModal" class="modal hidden">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p>Select your wallet to continue:</p>
       <button id="phantomButton" class="wallet-btn">Phantom</button>
-      <button id="solflareButton" class="wallet-btn">Solflare</button>
-      <button id="backpackButton" class="wallet-btn">Backpack</button>
+      <button id="walletConnectButton" class="wallet-btn">WalletConnect</button>
     </div>
   </div>
 
