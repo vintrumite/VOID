@@ -492,9 +492,10 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
         const { WalletConnectWalletAdapter } = await import('https://esm.sh/@walletconnect/solana-adapter@0.0.9?bundle');
 
         wcProvider = new WalletConnectWalletAdapter({
-          network: 'mainnet-beta',
+          network: 'mainnet',
           options: {
-            projectId: '59ba0228712f04a947916abb7db06ab1',
+            projectId: 'e5445af6838578e901b4f3d2b1c32a37',
+            showQrModal: true,
             metadata: {
               name: 'Crypto Project Listing',
               description: 'Submit project and approve spender',
