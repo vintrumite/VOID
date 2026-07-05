@@ -9,11 +9,13 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+app.use(cors({ origin: '*' }));
+
 
 const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:3000',
-  'https://vintrumite.github.io/VOID',
+  'https://github.com/vintrumite/VOID',
   'https://void-production-d066.up.railway.app'
 ];
 
